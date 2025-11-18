@@ -3,11 +3,6 @@ title: 🛫 一切的开始
 createDate: 2025-11-18 17:32
 modifyDate: 2025-11-18 17:35
 ---
-<div><iframe
-  src="content/attachment/clock.html"
-  style="width:65%; max-width:900px; height:120px; border:0; display:block; margin:0 auto; background:transparent;"
-  sandbox="allow-scripts allow-same-origin">
-</iframe></div>
 
 >[!note] 你好，陌生人👋 —— 这是来自 2025年11月18日 的问好。
 
@@ -38,5 +33,4 @@ modifyDate: 2025-11-18 17:35
 ---
 
 本页涉及的非原创想法来源如下，包括主页的翻页时钟以及页尾的“最近的笔记”显示。
-1. 翻页时钟：[不到180行代码写了一个漂亮的网页翻页时钟 - 知乎](https://zhuanlan.zhihu.com/p/714003311)；
-2. 显示最近笔记：[如何仅在 Quartz 的主页添加 RecentNotes](https://pdcxs.github.io/github/Quartz-Index-RecentNotes)。
+- 显示最近笔记：[如何仅在 Quartz 的主页添加 RecentNotes](https://pdcxs.github.io/github/Quartz-Index-RecentNotes)。
