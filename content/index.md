@@ -4,7 +4,7 @@ createDate: 2025-11-18 17:32
 modifyDate: 2025-11-18 17:35
 ---
 <div><iframe
-  src="attachment/clock.html"
+  src="content/attachment/clock.html"
   style="width:65%; max-width:900px; height:120px; border:0; display:block; margin:0 auto; background:transparent;"
   sandbox="allow-scripts allow-same-origin">
 </iframe></div>
