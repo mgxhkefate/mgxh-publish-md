@@ -1,42 +1,6 @@
 @use "./base.scss";
  
 // put your custom CSS here!
- 
-/* LXGW WenKai [4] */
-@font-face {
-  font-family: "LXGW WenKai";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.6.0/files/lxgwwenkai-regular-subset-4.woff2")
-    format("woff2");
-  unicode-range:
-    U+1f1e9-1f1f5, U+1f1f7-1f1ff, U+1f21a, U+1f232, U+1f234-1f237, U+1f250-1f251, U+1f300,
-    U+1f302-1f308, U+1f30a-1f311, U+1f315, U+1f319-1f320, U+1f324, U+1f327, U+1f32a, U+1f32c-1f32d,
-    U+1f330-1f357, U+1f359-1f37e;
-}
-/* LXGW WenKai [5] */
-@font-face {
-  font-family: "LXGW WenKai";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.6.0/files/lxgwwenkai-regular-subset-5.woff2")
-    format("woff2");
-  unicode-range:
-    U+fee3, U+fef3, U+ff03-ff04, U+ff07, U+ff0a, U+ff17-ff19, U+ff1c-ff1d, U+ff20-ff3a, U+ff3c,
-    U+ff3e-ff5b, U+ff5d, U+ff61-ff65, U+ff67-ff6a, U+ff6c, U+ff6f-ff78, U+ff7a-ff7d, U+ff80-ff84,
-    U+ff86, U+ff89-ff8e, U+ff92, U+ff97-ff9b, U+ff9d-ff9f, U+ffe0-ffe4, U+ffe6, U+ffe9, U+ffeb,
-    U+ffed, U+fffc, U+1f004, U+1f170-1f171, U+1f192-1f195, U+1f198-1f19a, U+1f1e6-1f1e8;
- 
-  // 后面内容为在线 css 的内容的拷贝
-}
-
-:root {
-  --bodyFont: "LXGW WenKai" !important;
-  --headerFont: "LXGW WenKai" !important;
-  --codeFont: "Cascadia Code" !important;
-}
 
 
 // img元素剧中
@@ -48,4 +12,43 @@ img {
 
  .markdown-source-view.mod-cm6 .cm-content > * {
     margin: auto auto !important;
+}
+
+// 修改callout内的p的段前距为0
+.callout-content p{
+    margin-block-start: 0rem;
+    margin-block-end: 1rem; //默认值为1rem
+
+}
+
+// 如果列表前面有 p，则列表的段前距（上间距）为 0
+p + ul,
+p + ol {
+    margin-block-start: 0 !important;
+}
+
+
+/* 当两个标题相邻时移除它们之间的间距 */
+:is(h1,h2,h3,h4,h5,h6) + :is(h1,h2,h3,h4,h5,h6) {
+  margin-block-start: 0 !important; /* 去掉后一个标题的上间距 */
+}
+
+// .article-title {
+//   color: #f03f28;
+// }
+
+article h2 {
+  color: #e4980c;
+}
+
+article h3 {
+  color: #51bc00;
+}
+
+article h4 {
+  color: #0993d3;
+}
+
+article h5 {
+  color: #9084e9;
 }

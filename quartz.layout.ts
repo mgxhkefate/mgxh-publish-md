@@ -17,7 +17,7 @@ export const sharedPageComponents: SharedLayout = {
   footer: Component.Footer({
     links: {
       GitHub: "https://github.com/mgxhkefate/mgxh-publish-md",
-      "E-mail: mgxhkefate@foxmail.com": "",
+      "LNYB": "https://mp.weixin.qq.com/s/kvC7de_R92Kr6tNAmhLe4w",
     },
   }),
 }
