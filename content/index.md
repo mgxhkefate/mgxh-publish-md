@@ -4,7 +4,7 @@ aliases:
 description:
 cssclasses:
 created: 2025-11-21
-modified: 2025-11-26
+modified: 2026-03-03
 createDate: 2025-11-19 08:29
 modifyDate: 2025-11-20 11:59
 tags:
@@ -44,6 +44,8 @@ tags:
 >2. Quartz 部署分享 (completed, unpublished)；[🛫2025-11-18]
 
 >[!note]- 更新日志
+>==20260303==，更新了 [[依恋理论]] 和 [[心理理论]]。
+>
 >==20251127==，更新了 [[网络分析]] 的内容，新增了桥梁分析、可预测性等内容。
 >
 >==20251126==，新增了 [[网络分析]] 笔记，不过内容并不完整~
