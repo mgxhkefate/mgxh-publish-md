@@ -8,6 +8,4 @@ modified: 2026-07-20
 cssclasses:
 ---
 
-This is a blank Quartz installation.
-
-See the [documentation](https://quartz.jzhao.xyz) for how to get started.
+现在是测试
