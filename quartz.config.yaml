@@ -116,13 +116,13 @@ plugins:
     order: 92
   - source: github:quartz-community/fonts
     enabled: true
-  - source: "git+file://D:/XL/quartz/custom-plugins/lxgw-font"
+  - source: "git+https://github.com/mgxhkefate/lxgw-font.git"
     enabled: true
     order: 5
-  - source: "git+file://D:/XL/quartz/custom-plugins/image-zoom"
+  - source: "git+https://github.com/mgxhkefate/image-zoom.git"
     enabled: true
     order: 7
-  - source: "git+file://D:/XL/quartz/custom-plugins/no-referrer-images"
+  - source: "git+https://github.com/mgxhkefate/no-referrer-images.git"
     enabled: true
     order: 6
   - source: github:quartz-community/remove-draft
