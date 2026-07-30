@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: Quartz 5
+  pageTitle: mgxh-publish
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
   analytics:
     provider: plausible
-  locale: en-US
+  locale: zh-CN
   baseUrl: mgxhkefate.github.io/mgxh-publish-md
   # 自定义扩展：Bing Webmaster Tools 验证代码（msvalidate.01）。
   # 升级 Quartz 时，此字段需连同 quartz/cfg.ts 的 GlobalConfiguration 类型定义、quartz/components/Head.tsx 的渲染逻辑一并保留，否则会被覆盖失效。
@@ -86,6 +86,9 @@ plugins:
     layout:
       position: right
       priority: 30
+    options:
+      maxDepth: 6
+      minEntries: 2
   - source: github:quartz-community/crawl-links
     enabled: true
     options:
@@ -97,7 +100,7 @@ plugins:
   - source: github:quartz-community/latex
     enabled: true
     options:
-      renderEngine: katex
+      renderEngine: mathjax
     order: 80
   - source: github:quartz-community/citations
     enabled: false
@@ -113,6 +116,15 @@ plugins:
     order: 92
   - source: github:quartz-community/fonts
     enabled: true
+  - source: "git+file://D:/XL/quartz/custom-plugins/lxgw-font"
+    enabled: true
+    order: 5
+  - source: "git+file://D:/XL/quartz/custom-plugins/image-zoom"
+    enabled: true
+    order: 7
+  - source: "git+file://D:/XL/quartz/custom-plugins/no-referrer-images"
+    enabled: true
+    order: 6
   - source: github:quartz-community/remove-draft
     enabled: true
   - source: github:quartz-community/explicit-publish
@@ -199,7 +211,7 @@ plugins:
       position: left
       priority: 10
   - source: github:quartz-community/darkmode
-    enabled: true
+    enabled: false
     layout:
       position: left
       priority: 30
@@ -267,7 +279,7 @@ plugins:
       subdir: plugin
     enabled: true
     options:
-      theme: default
+      theme: tokyo-night
   - source: github:quartz-community/obsidian-plugin-excalidraw
     enabled: true
     options:

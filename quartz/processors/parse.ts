@@ -14,6 +14,20 @@ import { QuartzLogger } from "../util/log"
 import { trace } from "../util/trace"
 import { BuildCtx, WorkerSerializableBuildCtx } from "../util/ctx"
 import { styleText } from "util"
+import { visit } from "unist-util-visit"
+
+// 把脚注区标题从 h2 降级为 h6（rem 注：remark-rehype 生成的脚注标题固定是 h2，
+// 而「最大一级标题下划线」规则用 :has(h2) 匹配，会误伤脚注标题）。
+// 降级成 h6 后，脚注标题不再匹配 h2 规则，且文章有 h2 时 h3~h6 分支也不会触发，脚注彻底无下划线。
+function footnoteHeadingToH6() {
+  return (tree: any) => {
+    visit(tree, "element", (node: any) => {
+      if (node.tagName === "h2" && node.properties?.id === "footnote-label") {
+        node.tagName = "h6"
+      }
+    })
+  }
+}
 
 export type QuartzMdProcessor = Processor<MDRoot, MDRoot, MDRoot>
 export type QuartzHtmlProcessor = Processor<undefined, MDRoot, HTMLRoot>
@@ -41,6 +55,8 @@ export function createHtmlProcessor(ctx: BuildCtx): QuartzHtmlProcessor {
       .use(remarkRehype, { allowDangerousHtml: true })
       // HTML AST -> HTML AST transforms
       .use(transformers.flatMap((plugin) => plugin.htmlPlugins?.(ctx) ?? []))
+      // 脚注标题 h2 -> h6（见 footnoteHeadingToH6 定义）
+      .use(footnoteHeadingToH6)
   )
 }
 

@@ -1,3 +1,537 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+// ============================================================================
+// 1) 正文排版：仅作用于正文内容区（.center 内的 article）
+//    不影响左侧 explorer、库标题、目录（TOC）等侧边栏元素。
+//    说明：base.scss 中正文容器为 .center > article，explorer 在 .sidebar.left 内，二者互不重叠。
+// ============================================================================
+.center article {
+  h1 {
+    font-size: 2rem;
+    // color: #001A57;
+  }
+  h2 {
+    font-size: 1.83rem;
+    // color: #002A7C;
+  }
+  h3 {
+    font-size: 1.67rem;
+    // color: #003CAB;
+  }
+  h4 {
+    font-size: 1.5rem;
+    // color: #0052D9;
+  }
+  h5 {
+    font-size: 1.33rem;
+    // color: #366EF4;
+  }
+  h6 {
+    font-size: 1rem;
+    // color: #618DFF;
+  }
+
+  // 列表标记加粗
+  ::marker {
+    font-weight: bold;
+  }
+
+  // ol 后接 ul：去掉两者之间的间隔（包裹 div 版，命中真实 DOM）
+  div.el-ol:has(+ div.el-ul) > ol {
+    margin-bottom: 0 !important;
+  }
+  div.el-ol + div.el-ul > ul {
+    margin-top: 0 !important;
+  }
+
+  // ul 后接 ol：去掉两者之间的间隔（包裹 div 版）
+  div.el-ul:has(+ div.el-ol) > ul {
+    margin-bottom: 0 !important;
+  }
+  div.el-ul + div.el-ol > ol {
+    margin-top: 0 !important;
+  }
+
+  // 兜底：少数未被 div.el-* 包裹的场景（裸相邻 ol/ul）
+  ol:not(li ol):has(+ ul:not(li ul)),
+  ul:not(li ul):has(+ ol:not(li ol)) {
+    margin-bottom: 0 !important;
+  }
+  ol:not(li ol) + ul:not(li ul),
+  ul:not(li ul) + ol:not(li ol) {
+    margin-top: 0 !important;
+  }
+
+  // 标题上 / 下间距（基础值）
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 2.5rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  // 相邻标题（中间无其它内容块）→ 彼此间距固定 0.5rem
+  :is(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6),
+  div:has(> :is(h1, h2, h3, h4, h5, h6)) + div:has(> :is(h1, h2, h3, h4, h5, h6)) > :is(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0.5rem !important;
+  }
+  :is(h1, h2, h3, h4, h5, h6):has(+ :is(h1, h2, h3, h4, h5, h6)),
+  div:has(> :is(h1, h2, h3, h4, h5, h6)):has(+ div:has(> :is(h1, h2, h3, h4, h5, h6))) > :is(h1, h2, h3, h4, h5, h6) {
+    margin-bottom: 0.5rem !important;
+  }
+
+  // 两个标题之间只隔一个内容块（非 p / ul / ol / 标题）→ 取消下面标题的上边距
+  :is(h1, h2, h3, h4, h5, h6)
+    + :not(p):not(ul):not(ol):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)
+    + :is(h1, h2, h3, h4, h5, h6),
+  div:has(> :is(h1, h2, h3, h4, h5, h6))
+    + div:not(:has(> :is(p, ul, ol, h1, h2, h3, h4, h5, h6)))
+    + div:has(> :is(h1, h2, h3, h4, h5, h6)) > :is(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0 !important;
+  }
+
+  // 最大一级标题下划线（粗细固定 2px，颜色跟随该级标题文字色）
+  :has(h2) h2,
+  :not(:has(h2)):has(h3) h3,
+  :not(:has(h2)):not(:has(h3)):has(h4) h4,
+  :not(:has(h2)):not(:has(h3)):not(:has(h4)):has(h5) h5,
+  :not(:has(h2)):not(:has(h3)):not(:has(h4)):not(:has(h5)):has(h6) h6 {
+    border-bottom: 2px solid currentColor !important;
+    padding-bottom: 0.15em;
+  }
+}
+// ============================================================================
+// 2) 明暗（暗色模式）按钮图标：确保亮、暗两种主题下都清晰可见
+//    根因：quartz-themes 的 default 主题把按钮里的 <svg> 隐藏（display:none），
+//          改用 CSS mask-image + background: var(--quartz-icon-color) 绘制图标；
+//          主题还会把 --dark / --light 重定义为文字色 / 背景色，故不能用它们。
+//    修法：直接覆盖 --quartz-icon-color，给亮 / 暗主题各一个固定高对比色
+//          （取自 Quartz 默认主题前景色：亮色 #2b2b2b、暗色 #ebebec）。
+//    说明：阅读模式按钮的颜色 / 图标已改到第 15 节（灰色 + 开 / 关两套图标），
+//          本节只管暗色模式（.darkmode）按钮，不再包含 .readermode。
+// ============================================================================
+.darkmode {
+  --quartz-icon-color: #2b2b2b;
+}
+html[saved-theme="dark"] .darkmode {
+  --quartz-icon-color: #ebebec;
+}
+// ============================================================================
+// 3) 库标题（站点标题）字体大小
+//    作用对象：左侧栏最顶部的站点 / 库标题（page-title 组件渲染的 <h2 class="page-title">，
+//              显示文字为 mgxh-publish-md）。Quartz 原始默认字号 1.75rem。
+//    注意：这与第 4 节的 explorer“探索”标题是两回事，互不影响。
+//    修改方式：改下方 --library-title-size（当前 1.5rem，为用户设定值）即可，
+//              支持任意合法 CSS 长度，如 1.75rem / 18px / 1.3em。
+//    手动开关：给 <body> 加 class“library-title-off”可恢复原始字号 1.75rem。
+// ============================================================================
+:root {
+  --library-title-size: 1.5rem; // 当前值（用户设定）；Quartz 原始默认 1.75rem
+}
+// 前缀 html body 仅为提高特异性；本规则位于 @layer 之外，优先级高于 tokyo-night 主题（其在 @layer obsidian-theme 内），主题无法覆盖
+html body .page-title {
+  font-size: var(--library-title-size) !important;
+}
+html body .page-title a {
+  font-size: inherit;
+}
+body.library-title-off .page-title {
+  font-size: 1.75rem !important;
+}
+// ============================================================================
+// 4) explorer“探索”标题字体大小（侧边栏文件树顶部的“Explorer/探索”标题）
+//    与第 3 节的库标题（mgxh-publish-md）互不影响。Quartz 原始默认字号 1rem。
+//    修改方式：改下方 --explorer-title-size 即可。
+// ============================================================================
+:root {
+  --explorer-title-size: 1rem;
+}
+html body .explorer button.desktop-explorer h2,
+html body .explorer button.mobile-explorer h2 {
+  font-size: var(--explorer-title-size) !important;
+}
+// ============================================================================
+// 5) 修复 explorer“探索”折叠时标题被裁切约一半
+//    根因：折叠仅由 JS 给 .explorer 加 .collapsed 类；
+//          原 CSS（explorer.scss）用 .explorer.collapsed { flex: 0 1 1.2rem }
+//          把整块侧边栏高度压到 1.2rem，再靠父级 overflow-y:hidden 裁掉文件树，
+//          但标题栏（“探索”标题 h2 + 折叠箭头，实际高约 1.9rem）也被一起裁，故标题被遮一半。
+//          且桌面端折叠时 .explorer-content 并未真正隐藏，只是被高度裁剪。
+//    修法：桌面端折叠态改为“标题栏完整显示 + 文件树隐藏”，不再压扁整块。
+//    手动开关：给 <body> 加 class“explorer-collapse-off”可恢复原始（压扁）行为。
+// ============================================================================
+@media all and (min-width: 801px) {
+  .explorer.collapsed {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+  .explorer.collapsed > .explorer-content {
+    display: none;
+  }
+  body.explorer-collapse-off .explorer.collapsed {
+    flex: 0 1 1.2rem;
+    min-height: 1.2rem;
+  }
+  body.explorer-collapse-off .explorer.collapsed > .explorer-content {
+    display: block;
+  }
+}
+// ============================================================================
+// 6) 正文（pageBody）使用霞鹜文楷，代码块除外
+//    字体由 .quartz/plugins/lxgw-font 插件通过 <link> 注入（LXGW WenKai，霞鹜文楷简体）。
+//    作用范围：.center 内容列（文章正文、标题、面包屑等），即页面主体。
+//    排除：代码块（pre / code）保持等宽字体 --codeFont（IBM Plex Mono），不被文楷覆盖；
+//          元信息（.content-meta，如日期 / 阅读时长）与 frontmatter 属性
+//          （.note-properties 及其子元素）使用站点默认字体，不套用文楷。
+//    如只想改文章正文（不含标题 / 面包屑），可把选择器 .center 改为 .center article。
+// ============================================================================
+.center {
+  font-family: "LXGW WenKai", var(--bodyFont), system-ui, sans-serif;
+}
+.center pre,
+.center code,
+.center pre code {
+  font-family: var(--codeFont);
+}
+// 排除：元信息（content-meta）与 frontmatter 属性（note-properties）使用站点默认字体
+.center .content-meta,
+.center .note-properties,
+.center .note-properties * {
+  font-family: var(--bodyFont), system-ui, sans-serif;
+}
+// ============================================================================
+// 7) 正文图片、Mermaid 图表默认居中
+//    作用范围：.center 内容列（文章正文区），不影响侧边栏 / 标题等。
+//    图片：转为块级元素，左右 auto 外边距居中，并限制最大宽度不超过容器。
+//    Mermaid：外层 pre（含 code.mermaid）用 flex 居中；同时给渲染后的 svg 兜底居中
+//             （Quartz 中 Mermaid 代码块渲染为 <pre><code class="mermaid">…<svg>…</svg></code></pre>）。
+//    如需关闭：直接注释掉 .center article 内对应的图片 / Mermaid 规则即可。
+// ============================================================================
+.center article {
+  // 图片默认居中
+  img {
+    display: block;
+    margin-inline: auto; // 等价于 margin-left/right: auto
+    max-width: 100%;
+    height: auto;
+  }
+
+  // Mermaid 外层块居中（含代码块边框清除，与 base.scss 保持一致）
+  pre:has(> code.mermaid) {
+    display: flex;
+    justify-content: center;
+    border: none;
+  }
+
+  // Mermaid 渲染后的 svg 兜底居中
+  code.mermaid,
+  .mermaid {
+    svg {
+      margin-inline: auto;
+      max-width: 100%;
+      height: auto;
+    }
+  }
+}
+
+// ============================================================================
+// 8) 代码块最大高度限制为 15 行，超出滚动
+//    作用范围：.center 内容列里的代码块（pre），不影响侧边栏 / 标题等。
+//    计算：Quartz 代码行高 1.6rem（base.scss 中 code { line-height: 1.6rem }），
+//          15 行 = 15 × 1.6rem = 24rem，故 max-height 取 24rem；超出出现纵向滚动条。
+//    排除：Mermaid 图表（pre > code.mermaid）不被截断，避免图表被裁切。
+//    如需关闭：直接注释掉下面这条 max-height 规则即可。
+// ============================================================================
+.center article pre:not(:has(> code.mermaid)) {
+  max-height: 24rem; // 15 × 1.6rem
+  overflow: auto;
+}
+
+// ============================================================================
+// 9) 正文加粗（strong / b）视觉增强
+//    根因：正文霞鹜文楷（LXGW WenKai）经 lxgw-font 插件注入时，@font-face 只声明了
+//          单一常规字重（font-weight: 400），没有真实粗体文件。因此 font-weight 设成
+//          700 / 800 / 9000 都无效——浏览器只能在同一个 regular 字形上做“合成加粗”
+//          （faux bold），幅度极小，肉眼几乎看不出变化。
+//    修法：改用 -webkit-text-stroke 给加粗文字描边，叠加在合成粗体之上，
+//          不依赖字体字重即可让 **加粗** 明显更醒目。stroke 宽 0.4px 较稳妥，
+//          若仍嫌不够可加到 0.6px；描边取 currentColor，与文字同色，不会发灰 / 发白。
+//    仅作用于正文内容列，不影响侧边栏 / 标题栏。
+//    如需关闭：直接注释掉下面这条规则即可。
+// ============================================================================
+.center article strong,
+.center article b {
+  font-weight: bold; // 保留合成粗体打底
+  -webkit-text-stroke: 0.3px currentColor; // 描边增强视觉粗细，必须带单位
+}
+
+// ============================================================================
+// 11) 表格：整体居中 + 圆角矩形外边框；并豁免“正文间距样式”对表格内嵌套内容的影响
+//      —— 居中 / 圆角边框：作用于 .table-container > table（Quartz 表格默认由
+//         .table-container 包裹，用于横向滚动；边框画在 table 上，
+//         border-radius 需配合 border-collapse: separate 才生效，collapse 下无效）。
+//      —— 豁免间距：第 1 / 7 / 8 节的正文标题、列表、图片、代码块间距规则，
+//         若表格单元格内嵌了 h1-h6、ol/ul、img、pre，会被这些规则命中而错位；
+//         此处在 table 作用域内把它们的 margin 等重置为紧凑值。
+//         加粗（strong/b）、高亮（mark/text-highlight）按需求保留，不做豁免。
+//      —— 关闭方式：不需要本节的居中 / 圆角 / 豁免，直接注释掉下方对应规则即可（不提供 body class 开关）。
+//         圆角大小改下方 --table-radius 即可。
+// ============================================================================
+:root {
+  --table-radius: 10px; // 表格圆角半径；改此值即可调整
+  --table-stripe: rgba(0, 0, 0, 0.045); // 斑马纹奇数行底色（亮色模式：淡灰）
+}
+// 暗色模式：斑马纹改为淡白叠加，与深色背景形成"灰白交替"
+html[saved-theme="dark"] {
+  --table-stripe: rgba(255, 255, 255, 0.05);
+}
+.center article {
+  // 表格整体居中 + 圆角矩形外边框
+  .table-container > table {
+    margin: 1rem auto;                  // 上下 1rem、左右 auto → 相对正文居中
+    border: 1px solid var(--lightgray); // 外边框（圆角矩形框）
+    border-radius: var(--table-radius); // 圆角矩形
+    border-collapse: separate;          // 让圆角生效（collapse 下 border-radius 无效）
+    border-spacing: 0;
+    overflow: hidden;                   // 首 / 末行贴合圆角，裁掉直角溢出
+    padding: 0;                         // 清掉 base 的 1.5rem，避免边框离单元格过远
+  }
+
+  // 单元格内部框线（纵向 + 横向分隔线）。
+  // separate 模式下相邻单元格若各画全边框会叠成双线，故只画右 / 下边，
+  // 末列 / 末行由外框接管，得到干净的 1px 单线网格。
+  .table-container > table th,
+  .table-container > table td {
+    border-right: 1px solid var(--lightgray);
+    border-bottom: 1px solid var(--lightgray);
+  }
+  // 最右列去掉右边框（外框已提供，避免与外框重叠成双线）
+  .table-container > table th:last-child,
+  .table-container > table td:last-child {
+    border-right: none;
+  }
+  // 末行去掉下边框（外框已提供）
+  .table-container > table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  // 表头分隔线：与内框线同宽（1px），不做额外加粗
+  .table-container > table thead th {
+    border-bottom: 1px solid var(--lightgray);
+  }
+  // 表头行：斑马纹第 1 道，起始即为淡灰
+  .table-container > table thead tr {
+    background-color: var(--table-stripe);
+  }
+
+  // 隔行变色（斑马纹）：从表头之后开始交替——tbody 第 1 行白、第 2 行灰……
+  // 与表头的淡灰衔接成"灰-白-灰-白"。颜色取自 --table-stripe，明暗主题自动适配
+  .table-container > table tbody tr:nth-child(odd) {
+    background-color: transparent;
+  }
+  .table-container > table tbody tr:nth-child(even) {
+    background-color: var(--table-stripe);
+  }
+
+  // 表格内嵌套正文：重置“正文间距样式”（加粗 / 高亮保留）
+  table {
+    // 标题：清掉正文那套 2.5rem 上间距、相邻标题间距、最大一级标题下划线
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 0 !important;
+      margin-bottom: 0.4rem !important;
+      border-bottom: none !important;
+      padding-bottom: 0 !important;
+    }
+    // 列表：清掉 ol/ul 之间的间距规则
+    div.el-ol:has(+ div.el-ul) > ol,
+    div.el-ol + div.el-ul > ul,
+    div.el-ul:has(+ div.el-ol) > ul,
+    div.el-ul + div.el-ol > ol,
+    ol:not(li ol):has(+ ul:not(li ul)),
+    ul:not(li ul):has(+ ol:not(li ul)),
+    ol:not(li ol) + ul:not(li ul),
+    ul:not(li ul) + ol:not(li ol) {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+    // 图片：取消正文“块级 + 居中”，恢复 inline 自然对齐
+    img {
+      display: inline-block !important;
+      margin: 0.2rem 0 !important;
+      max-width: 100%;
+      height: auto;
+    }
+    // 代码块：取消正文 24rem 高度限制，避免表格内代码被截断
+    pre:not(:has(> code.mermaid)) {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    // Mermaid：取消正文区的 flex 居中，恢复块级（与正文区外观一致）
+    pre:has(> code.mermaid) {
+      display: block !important;
+      justify-content: initial !important;
+      border: none !important;
+    }
+  }
+}
+
+// ============================================================================
+// 10) 正文高亮（==文字== 实际渲染为 <span class="text-highlight">，兼容 <mark>）手绘马克笔风格
+//     颜色固定 #ffcf5c（金黄）。
+//     用 104° 倾斜、起止透明、中间深浅不均的线性渐变只刷文字下半截，
+//     像荧光笔斜着刷了一道手绘划痕（非规整矩形块）。
+//     不规则圆角 + 两侧内边距轻微溢出，弱化石板感；多行高亮每行独立笔触。
+//     如需关闭：直接注释掉下面这段即可。
+// ============================================================================
+.center article mark,
+.center article .text-highlight {
+  color: inherit; // 文字颜色不变
+  background-color: transparent; // 清掉主题默认 --textHighlight 底色
+  background-image: linear-gradient(
+    104deg,
+    rgba(255, 207, 92, 0.4) 0%,
+    rgba(255, 207, 92, 0.78) 8%,
+    rgba(255, 207, 92, 0.78) 92%,
+    rgba(255, 207, 92, 0.4) 100%
+  );
+  background-position: 0 50%; // 垂直居中，铺满整行字身
+  background-size: 100% 0.95em; // 覆盖字身高度的 95%，不再只刷下半截
+  background-repeat: no-repeat;
+  border-radius: 0.25em 0.6em 0.3em 0.5em; // 不规则圆角，弱化石板矩形
+  padding: 0.08em 0.1em; // 两侧轻微溢出，像手画的
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone; // 多行高亮每行独立笔触
+}
+
+// ============================================================================
+// 12) 网页点状背景（dot grid）：在页面底色上叠加淡淡的重复圆点纹理
+//     用 radial-gradient 画一个 1px 圆点，background-size 控制点间距（密度）。
+//     只设 background-image，不动主题底色（base.scss 的 body 用 background-color 设底色），
+//     圆点极淡地叠在底色之上，不干扰阅读。
+//     暗色模式用浅色点、亮色模式用深色点，明暗自动适配。
+//     如需关闭：注释掉下方 html body 规则即可（不提供 body class 开关）。
+//     可调项：圆点颜色透明度、background-size（越大越稀）、background-attachment
+//             （fixed 让点阵不随滚动移动；去掉则该属性恢复默认）。
+// ============================================================================
+html body {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1.4px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+  background-attachment: fixed; // 点阵固定，不随内容滚动而移动
+}
+html[saved-theme="dark"] body {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.4px);
+}
+
+// ============================================================================
+// 13) 全站滚动条：只保留可拖动的细灰条（thumb=#999），其余成分去除
+//     · track / button / corner 全部透明或移除；
+//     · 滚动条为常驻细条，不做默认隐藏 / 悬停显形 / 拖动变粗。
+//     · 亮色 #999；暗色用稍亮的 #bbb 保证可见。
+//     如需关闭：注释掉本节省略即可。
+// ============================================================================
+* {
+  scrollbar-width: thin;              // Firefox 细条
+  scrollbar-color: #999 transparent; // thumb 灰、track 透明
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+}
+// 去除轨道、按钮、角落等其它成分，只留 thumb
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece {
+  background: transparent;
+  border: none;
+}
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+// 可拖动条（thumb）：细灰条、圆角
+::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 4px;
+}
+// 暗色模式：thumb 用稍亮的灰，保证可见
+html[saved-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #bbb;
+}
+
+// ============================================================================
+// 14) 正文斜体（em / i）增加下划线
+//     根因：正文霞鹜文楷（LXGW WenKai）经 lxgw-font 插件注入时，@font-face 只声明了
+//           单一常规字重，斜体也由浏览器做“合成斜体”（faux italic，靠 skew 模拟），
+//           与正文字形区分度有限；给斜体再加一条下划线，可让 *强调* 更易辨认。
+//     修法：给正文斜体元素（Markdown 的 *文字* / _文字_ 均渲染为 <em>，<i> 同理）
+//           加下划线，并用 text-underline-offset 把线稍微下移，避免和字母降部（g/y/p）粘连。
+//     作用范围：.center 内容列（文章正文），不影响侧边栏 / 标题栏。
+//     手动开关：给 <body> 加 class“italic-underline-off”可恢复原始（无下划线）样式。
+//     如需关闭：直接注释掉下面这段即可。
+// ============================================================================
+.center article em,
+.center article i {
+  text-decoration: underline;          // 斜体加下划线
+  text-underline-offset: 0.15em;        // 下划线离字身远一点，避免与降部粘连
+  text-decoration-thickness: 1px;       // 线宽固定 1px，明 / 暗主题都清晰
+}
+
+body.italic-underline-off .center article em,
+body.italic-underline-off .center article i {
+  text-decoration: none;                // 手动开关：关闭斜体下划线
+}
+
+// ============================================================================
+// 15) 阅读模式按钮：开 / 关两套图标 + 灰色（不再近黑）
+//     根因：quartz-themes 用 button.readermode { background: var(--quartz-icon-color); mask-image: var(--readermode-icon) }
+//           把按钮画成单色图标。原 --readermode-icon 是固定的一本“打开的书”（Lucide book-open，描边风），
+//           且 --quartz-icon-color 在亮色模式为 #2b2b2b（近黑），故按钮一直是一本书、且是黑色。
+//     修法：① 关（reader-mode=off）→ 打开的书 book-open；开（reader-mode=on）→ 带勾的书
+//           book-open-check，两套图标随 reader-mode 属性切换（与暗色模式 sun / moon 同源机制）。
+//           ② 图标底色改为灰色 var(--gray)（亮 #b8b8b8 / 暗 #646464），不再近黑。
+//     说明：图标用 Lucide 描边风 SVG，作 mask 时描边即不透明区域；本规则写在 custom.scss（无 @layer），
+//           优先级高于主题的 @layer obsidian-theme，可直接覆盖 --readermode-icon / --quartz-icon-color。
+//     如需关闭：注释掉本节省略（恢复主题默认：单图标 + 近黑）；不提供 body class 开关。
+// ============================================================================
+.readermode {
+  --quartz-icon-color: var(--gray);                            // 图标底色改灰色
+  --readermode-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgNXYxNiIvPjxwYXRoIGQ9Ik0yMC4wMDEgMTlBMiAyIDAgMDAyMiAxN1Y1YTIgMiAwIDAwLTEuOTk5LTJMMTYgMy4wMDJBNSA1IDAgMDAxMiA1YTUgNSAwIDAwLTQtMkg0YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDEuOTk5IDJIOGE1IDUgMCAwMTQgMiA1IDUgMCAwMTQtMnoiLz48L3N2Zz4=');   // 关：打开的书
+}
+:root[reader-mode="on"] .readermode {
+  --readermode-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgNXYxNiIvPjxwYXRoIGQ9Im0xNiAxMiAyIDIgNC00Ii8+PHBhdGggZD0iTTIyIDZWNWEyIDIgMCAwMC0xLjk5OS0yTDE2IDMuMDAyQTUgNSAwIDAwMTIgNWE1IDUgMCAwMC00LTJINGEyIDIgMCAwMC0yIDJ2MTJhMiAyIDAgMDAxLjk5OSAySDhhNSA1IDAgMDE0IDIgNSA1IDAgMDE0LTJoNC4wMDFBMiAyIDAgMDAyMiAxN3YtMS4zNDQiLz48L3N2Zz4=');   // 开：带勾的书
+}
+
+// ============================================================================
+// 16) 压缩 Bases 表格单元格的上下内边距
+//     根因：bases-page 插件（quartz-community/bases-page）的组件样式
+//           .bases-table th, .bases-table td { padding: 10px 12px }
+//           把单元格上下留白设成 10px，行高偏大、表格整体显得松散。
+//     修法：把单元格上下内边距从 10px 收到 4px（左右 12px 保持不变），让表格更紧凑。
+//           选择器 .bases-page .bases-table 比插件原规则多包了一层类，优先级更高，
+//           无论样式加载顺序如何都能稳定覆盖（实测插件规则在 component-*.css、
+//           custom.scss 在 resource-style-*.css 且后加载）。
+//     手动开关：给 <body> 加 class“bases-cell-tight-off”可恢复插件默认的 10px。
+//     如需关闭：直接注释掉下面这段即可。
+// ============================================================================
+.bases-page .bases-table {
+  th,
+  td {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}
+
+body.bases-cell-tight-off .bases-page .bases-table th,
+body.bases-cell-tight-off .bases-page .bases-table td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
