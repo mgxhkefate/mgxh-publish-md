@@ -45,6 +45,22 @@ export default (() => {
       <head>
         <title>{title}</title>
         <meta charSet="utf-8" />
+        {/* mermaid 自托管：把 cdnjs 的 mermaid ESM 重定向到站内 /static 文件，
+           避免国内访问 cdnjs.cloudflare.com 不稳定导致 mermaid 渲染偶发失败。
+           data-persist 使其不被 SPA 切页时的 head 清理移除/重注册
+           （否则浏览器会报“import map 已在模块加载后添加”）。 */}
+        <script
+          type="importmap"
+          data-persist
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              imports: {
+                "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.esm.min.mjs":
+                  joinSegments(baseDir, "static/mermaid.bundle.mjs"),
+              },
+            }),
+          }}
+        />
         {coreStylesheet && <link rel="preload" href={coreStylesheet} as="style" />}
         {coreScript && coreScript.contentType === "external" && (
           <link rel="preload" href={coreScript.src} as="script" />
@@ -59,7 +75,6 @@ export default (() => {
             )}
           </>
         )}
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         <meta name="og:site_name" content={cfg.pageTitle}></meta>
