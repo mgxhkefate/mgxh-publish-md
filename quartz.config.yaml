@@ -8,6 +8,9 @@ configuration:
     provider: plausible
   locale: en-US
   baseUrl: mgxhkefate.github.io/mgxh-publish-md
+  # 自定义扩展：Bing Webmaster Tools 验证代码（msvalidate.01）。
+  # 升级 Quartz 时，此字段需连同 quartz/cfg.ts 的 GlobalConfiguration 类型定义、quartz/components/Head.tsx 的渲染逻辑一并保留，否则会被覆盖失效。
+  bingWebmasterVerification: "A354EDA021F74CD20D83E85552D42E67"
   ignorePatterns:
     - private
     - templates

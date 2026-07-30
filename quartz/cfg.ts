@@ -81,6 +81,8 @@ export interface GlobalConfiguration {
    * Region Codes: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
    */
   locale: ValidLocale
+  /** Bing Webmaster Tools verification code (msvalidate.01). When set, a <meta name="msvalidate.01"> tag is injected into <head>. */
+  bingWebmasterVerification?: string
 }
 
 export interface QuartzConfig {
