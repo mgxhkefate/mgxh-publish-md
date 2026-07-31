@@ -18,7 +18,7 @@ title: Quartz 官方 pull 后需重调的定制项
 | 项 | 文件 | 是否会被 pull 覆盖 | 风险 |
 |---|---|---|---|
 | 1. 站点图标 favicon | `quartz/static/icon.png` | **是**(框架自带默认图标) | 高 |
-| 2. 阅读模式默认开启 | `.quartz/plugins/reader-mode/dist/**` 与 `src/**` | **是**(外部插件，sync 时重拉默认) | 高 |
+| 2. 阅读模式默认开启 | 已**固化**（config 指向自建 fork `mgxhkefate/reader-mode`，默认开） | 否（除非手动同步上游） | 低 |
 | 3. quartz.config.yaml 插件条目 | `quartz.config.yaml` | 合并冲突时**可能丢** | 中 |
 | 4. custom.scss 覆盖层 | `quartz/styles/custom.scss` | 否 (用户文件) | 低，但需复核 |
 
@@ -68,11 +68,11 @@ cd D:/XL/quartz && npx quartz build
 
 ---
 
-## 2. 阅读模式默认开启 (高，必丢)
+## 2. 阅读模式默认开启（已固化，低风险）
 
-- **改了什么**：外部插件 `github:quartz-community/reader-mode`(在 `quartz.config.yaml` 以 `github:quartz-community/reader-mode` 引入)。我把它的初始状态从「关闭」改成「开启」，实现进站即阅读模式 (隐藏左右侧栏)。
+- **当前状态（2026-07-31 固化）**：阅读模式默认开启已通过**自建 fork `mgxhkefate/reader-mode` 固化**——该 fork 的初始状态为「开启」，且 `quartz.config.yaml` 已指向 `git+https://github.com/mgxhkefate/reader-mode.git`。常规 pull 官方 Quartz 框架不会再把它打回关闭。
 - **为什么会被覆盖**：这个插件是独立 git 仓库 (`.quartz/plugins/reader-mode/.git`)，`npx quartz sync` 或插件更新时会把 `dist/` 重新拉回默认 (默认 `false` = 关闭)。源码里的 `let isReaderMode = false` 也会被重置。
-- **重调步骤**：改三处 (关键：**Quartz 实际打包的是 `dist/components/index.js` 那份 inline script**，只改 `dist/index.js` 没用——这是之前踩过的坑)。
+- **手动重调步骤（仅当你主动 `git fetch upstream` 同步官方 reader-mode 更新后才需要）**：改三处 (关键：**Quartz 实际打包的是 `dist/components/index.js` 那份 inline script**，只改 `dist/index.js` 没用——这是之前踩过的坑)。
 
 ```bash
 PLUGIN=D:/XL/quartz/.quartz/plugins/reader-mode
@@ -118,7 +118,7 @@ cd D:/XL/quartz && npx quartz build
 - **为什么要注意**：`quartz.config.yaml` 是我的配置文件。从官方 pull 时若官方也改了这个文件，Git 会报合并冲突，处理不当会把我加的自定义插件丢掉，站点直接构建失败或功能缺失。
 - **重调步骤**：pull / 合并后，打开 `quartz.config.yaml`，确认以下条目**都还在**：
   - 5 个自研插件 (在 `plugins` 段，以 `source: "./custom-plugins/<name>"` 或 git URL 引用)：`no-referrer-images`、`lxgw-font`、`image-zoom`、`mermaid-selfhost`、`markdown-image-size`。
-  - 阅读模式插件：`github:quartz-community/reader-mode`(在 `plugins` 段)。
+  - 阅读模式插件：`git+https://github.com/mgxhkefate/reader-mode.git`(在 `plugins` 段，自建 fork、默认开)。
   - 这些插件的 `component` 注册 (如 `reader-mode`、`lxgw-font` 等) 也需在对应组件段保留。
 - **注意**：自研插件在 `custom-plugins/` 或独立 git 仓库里 (被主仓库 `.gitignore` 忽略)，pull Quartz 本身不会动它们；但这里只检查「config 是否还引用它们」。
 
