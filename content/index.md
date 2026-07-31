@@ -1,115 +1,83 @@
 ---
-title: 欢迎来到秘密食堂
+noteType: index
+title: 𝑱𝒐𝒊𝒏 𝒎𝒆 𝒊𝒏 𝒘𝒐𝒏𝒅𝒆𝒓𝒊𝒏𝒈.
+description: 你会在这一页了解到关于这个网站与我的一切……
 aliases:
 tags:
-description:
-created: 2026-07-20
-modified: 2026-07-30
+created: 2026-07-20 00:00
+modified: 2026-07-31 21:55
 cssclasses:
 ---
 
-![VCG211424031120.jpg (800×450)](https://vcg02.cfp.cn/creative/vcg/800/new/VCG211424031120.jpg)
+𝓦𝓮𝓵𝓬𝓸𝓶𝓮,
 
-现在是测试
+我是岭南以北，也是 MG。这里是我的个人博客，也是沉思的漫游地。
 
-`哈哈哈哈`
+目前我专注于提升生活里**体验性**的部分，同时正在学习一些认知流派下的**助人技术**，关注的话题包括，*我们该如何生活？或者说，如何品味生活*？作为一名心理从业者，也许是将来的心理咨询师，那么我该如何运用咨询技术帮助来访者？也许是将来的中学心理老师，那么我该如何将心理咨询的内涵融入课堂当中？无论是关于助人，还是助己，我都有很长的一段路要走。
 
-测试图片
+作为一个学生，我一直有着记录笔记的习惯。然而这些笔记最终都流入垃圾桶……或许也是因为这个原因，博客才会存在的吧。总之如果有你需要的内容，那么恭喜你 (。・∀・) ノ
 
-下面进行代码块测试
+/𝓶𝓰𝔁𝓱𝓴𝓮𝓯𝓪𝓽𝓮.
 
-```js
-dddddddddddddddddddddddadad
-
-
-1121212
-21212
-
-
-
-
-
-
-
-
-
-212121
-
-
-
-
-
-2121
-```
-
-```mermaid
-flowchart TD
-
-    A[Christmas] -->|Get money| B(Go shopping)
-
-    B --> C{Let me think}
-
-    C -->|One| D[Laptop]
-
-    C -->|Two| E[iPhone]
-
-    C -->|Three| F[fa:fa-car Car]
-```
-
-### 1.1
-
-现在==测试==大纲顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶关于人工智能的未来发展，这个问题一直以来都备受关注。 这个问题的重要性不容低估。 从历史的角度来回顾，我们可*以发现这个问题的发脉*络和演变规律。 只有这样，我们才能找到真正的解决方案。 对于人工智能的未来发展这个~~问题，综合以上观点，这个~~问题的解决过程本身就是 $\frac{1}{2}$ 一个学习、成长和进步的过程。 基于这样的认识，这个问题的根本解决需要我们从源头上进行系统性[^1]的改[^2]革和创新。 对于人工智能的未来发展这个问题，
-
-据此分析，这个问题涉及到社会的方方面面。 显而易见的是，我们必须将理论与实践相结合。 然而，这个问题的解决过程本身就是一个学习、成长和进步的==过程。 毫无疑问，这需要政府、企业、个人等各方面的共同努力和协调配合。 对于人工智能的未来发展这个问题，但是，只有这样，我们才能找到真正的解决方案。 对于人工智能的未来==发展这个问题，基于这种理解，在多元化价值观并存的社会中，这个问题呈现出了更加复杂的面貌。 同时，在全球化的大背景下，这个问题呈现出了跨国界、跨文化的特征。 对于人工智能的未来发展这个问题，
-
-总而言之，人工智能的未来发展是一个值得我们深思的问题。
-
->[!note] 这是测试
->这是内容
-
-#### 1.1.1 这是标题测试
-
-大大大大 [[未命名]]
-
-| 这是一个表格测试 | 大大大大 |
-| -------- | ---- |
-| 大大大      | 大大大大 |
-| 大大       | 大大啊  |
+---
 
 ```base
-filters:
-  and:
-    - file.ext == "md"
+formulas:
+  name: link(file.name, title)
+  类型: noteType
+  创建时间: created
+  修改时间: modified
+  上次更新: file.mtime.relative()
+  描述: description
+  标签: tags
+properties:
+  note.noteType:
+    displayName: 类型
+  note.tags:
+    displayName: 标签
+  note.created:
+    displayName: 创建日期
+  note.modified:
+    displayName: 修改日期
+  formula.name:
+    displayName: 笔记名称
+  formula.类型:
+    displayName: 内容类型
 views:
   - type: table
-    name: 全部笔记
+    name: 所有笔记
     filters:
       and:
-        - file.name.contains("未")
+        - not:
+            - '!file.hasProperty("noteType")'
+        - not:
+            - noteType == "index"
     order:
-      - file.name
-      - file.folder
-      - file.modified
+      - formula.name
+      - formula.类型
+      - formula.上次更新
     sort:
-      - property: file.modified
+      - property: file.mtime
         direction: DESC
+    columnSize:
+      formula.name: 350
+      formula.类型: 50
+      formula.上次更新: 100
+  - type: table
+    name: 碎碎念
+    filters:
+      and:
+        - file.tags.contains("岭南碎碎念")
+    order:
+      - formula.name
+      - formula.创建时间
+      - formula.修改时间
+    sort:
+      - property: file.mtime
+        direction: DESC
+    columnSize:
+      - formula.name: 300
+      - formula.创建时间: 100
+      - formula.修改时间: 100
 
 ```
-
-### 1.2
-
-#### 1.2.1
-
-现在测试大纲 [[#1]]
-
-下面**测试**列表
-
-1. 大大大
-2. 大啊哒哒哒
-3. 阿发发发
-- 列表设置。
-
-哈哈哈哈哈哈哈
-
-[^1]: 测试脚注
-[^2]: 测试多个脚注

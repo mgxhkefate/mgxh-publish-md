@@ -31,9 +31,10 @@
     // color: #618DFF;
   }
 
-  // 列表标记加粗
+  // 列表标记：加粗 + 数字 / 符号统一着色（有序列表数字、无序列表符号）
   ::marker {
     font-weight: bold;
+    color: #3f739a;
   }
 
   // ol 后接 ul：去掉两者之间的间隔（包裹 div 版，命中真实 DOM）
@@ -219,15 +220,13 @@ html body .explorer button.mobile-explorer h2 {
     height: auto;
   }
 
-  // Mermaid 外层块居中（含代码块边框清除，与 base.scss 保持一致）
-  pre:has(> code.mermaid) {
-    display: flex;
-    justify-content: center;
+  // Mermaid 外层块：去掉代码块边框（居中交给 code.mermaid-selfhost 内的 text-align）
+  pre:has(> code.mermaid-selfhost) {
     border: none;
   }
 
   // Mermaid 渲染后的 svg 兜底居中
-  code.mermaid,
+  code.mermaid-selfhost,
   .mermaid {
     svg {
       margin-inline: auto;
@@ -242,10 +241,10 @@ html body .explorer button.mobile-explorer h2 {
 //    作用范围：.center 内容列里的代码块（pre），不影响侧边栏 / 标题等。
 //    计算：Quartz 代码行高 1.6rem（base.scss 中 code { line-height: 1.6rem }），
 //          15 行 = 15 × 1.6rem = 24rem，故 max-height 取 24rem；超出出现纵向滚动条。
-//    排除：Mermaid 图表（pre > code.mermaid）不被截断，避免图表被裁切。
+//    排除：Mermaid 图表（pre > code.mermaid-selfhost，由 mermaid-selfhost 插件改名）不被截断，避免图表被裁切。
 //    如需关闭：直接注释掉下面这条 max-height 规则即可。
 // ============================================================================
-.center article pre:not(:has(> code.mermaid)) {
+.center article pre:not(:has(> code.mermaid-selfhost)) {
   max-height: 24rem; // 15 × 1.6rem
   overflow: auto;
 }
@@ -364,12 +363,12 @@ html[saved-theme="dark"] {
       height: auto;
     }
     // 代码块：取消正文 24rem 高度限制，避免表格内代码被截断
-    pre:not(:has(> code.mermaid)) {
+    pre:not(:has(> code.mermaid-selfhost)) {
       max-height: none !important;
       overflow: visible !important;
     }
     // Mermaid：取消正文区的 flex 居中，恢复块级（与正文区外观一致）
-    pre:has(> code.mermaid) {
+    pre:has(> code.mermaid-selfhost) {
       display: block !important;
       justify-content: initial !important;
       border: none !important;
@@ -535,3 +534,228 @@ body.bases-cell-tight-off .bases-page .bases-table td {
   padding-bottom: 10px;
 }
 
+
+// ============================================================================
+// 18) 列表缩进（悬挂式：bullet 落在正文左缘，文字内缩）
+//     根因：Quartz 的 base.scss 只给 ul/ol/li 设了文字颜色，没有重置 padding-left，
+//           列表沿用浏览器默认的约 40px（≈2.5rem）左缩进，显得过宽。
+//     机制：padding-inline-start 作用在 ul/ol 容器上，是相对其包含块的左内边距；
+//           ul/ol 与正文 p 是 .center article 下的同级块，左边缘在同一条线上，
+//           所以这个值 = 列表文字相对正文文字的右移量（list-style-position 默认 outside，
+//           bullet 绘制在 padding 左部、约等于正文左缘）。即它不是“和正文平齐”，
+//           而是“悬挂缩进”：bullet 对齐正文、文字内缩此值。
+//     取值：一级 1.5rem 为实测与正文视觉平齐（bullet 贴正文左缘）的值；
+//           嵌套层级每级均匀再右移 1.2rem。如需列表文字与正文严格左对齐，
+//           改 list-style-position: inside 或 padding-inline-start:0。
+//     作用范围：.center article（文章正文），与第 3~7 节列表规则一致。
+// ============================================================================
+.center article ul,
+.center article ol {
+  padding-inline-start: 2rem;          // 一级列表：bullet 贴正文左缘，文字内缩 1.5rem
+}
+
+.center article li > ul,
+.center article li > ol {
+  padding-inline-start: 1.2rem;          // 嵌套层级：每级再右移 1.2rem
+}
+
+// 任务列表（checkbox）整列左对齐，不额外缩进
+.center article ul:has(li > input[type="checkbox"]) {
+  padding-inline-start: 0;
+}
+
+// ============================================================================
+// 19) 表格内段落行高调整，同时作用于base-table和普通table
+// ============================================================================
+.table-container>table>* {
+  line-height: 1.5rem;
+}
+
+.bases-view-meta {
+  margin-top: 0.5rem;
+  margin-bottom: 0rem;
+}
+
+// ============================================================================
+// 21) 恢复全局图谱按钮（global-graph-icon）图标
+//     根因：tokyo-night 主题把该按钮的原始 <svg> 设为 display:none，
+//           改用 mask-image + background 重绘图标。但该 mask 机制在你的环境下
+//           未能正常显示（mask 渲染失败 → 按钮整块透明；或 background 颜色变量链
+//           在暗色下解析为不可见色），导致按钮“消失”。
+//     修法：放弃 mask 方案，恢复 Quartz 默认的原始 svg 图标渲染
+//           （svg 自带 fill="currentColor"，沿用按钮 color 上色，明暗自适应），
+//           并清除主题的 mask 与背景填充约束。
+//     作用范围：所有 global-graph-icon 按钮（文章页图谱右上角 / /graph 页）。
+//     手动开关：给 <body> 加 class“graph-icon-off”可再次隐藏该按钮。
+// ============================================================================
+button.global-graph-icon {
+  background: transparent !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+button.global-graph-icon > svg {
+  display: inline-block !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+body.graph-icon-off button.global-graph-icon {
+  display: none !important;
+}
+
+// ============================================================================
+// 23) Bases 表格斑马纹包含表头
+//     根因：bases-page 的 .bases-table 表头单独设为 background: var(--light)，
+//           不参与斑马纹，与普通表格（表头即第一道暗纹）视觉不一致。
+//     修法：表头与 tbody 偶数行都复用 --table-stripe（与普通表格暗纹同一颜色、
+//           不另取更深的色），tbody 奇数行透明继承页面背景，形成“表头暗-行1亮-行2暗”。
+//     手动开关：给 <body> 加 class“bases-zebra-off”恢复插件默认（亮表头、无斑马纹）。
+//     如需关闭：直接注释掉下面这段即可。
+// ============================================================================
+.bases-page .bases-table {
+  thead th {
+    background: var(--table-stripe);
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: transparent;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: var(--table-stripe);
+  }
+}
+
+body.bases-zebra-off .bases-page .bases-table {
+  thead th {
+    background: var(--light);
+  }
+
+  tbody tr:nth-child(odd),
+  tbody tr:nth-child(even) {
+    background-color: transparent;
+  }
+}
+
+// 控制base视图切换的按钮的上下两侧间距
+.bases-page {
+  gap: 2px;
+}
+
+// ============================================================================
+// 24) 分割线（hr）：渲染为居中的黑色加粗「* * *」
+//     根因：Obsidian 的 --- 在 Quartz 中渲染为 <hr>，默认是整条横线。
+//     修法：清除 hr 默认边框，用 ::before 伪元素输出居中、黑色、加粗的「* * *」；
+//           letter-spacing 让三颗星更舒展，text-indent 等量补偿其末尾空白导致的整体偏左。
+//     暗色模式：纯黑在深色背景不可见，故暗色下改用浅色文字（--light），保证可见；
+//               若你坚持暗色也要纯黑，删除下方 html[saved-theme="dark"] 那段即可。
+//     手动开关：给 <body> 加 class「hr-stars-off」可恢复原始横线。
+// ============================================================================
+.center article hr {
+  border: none;             // 清除默认横线
+  background: transparent;  // 去除 base.scss 的灰色背景（--lightgray 整条矩形）
+  height: auto;
+  overflow: visible;
+  text-align: center;       // 「* * *」整体居中
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.center article hr::before {
+  content: "* * *";      // 居中的「* * *」分隔符
+  display: block;
+  color: #000;           // 黑色
+  font-weight: bold;     // 加粗
+  line-height: 1rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.25em;
+  text-indent: 0.25em;   // 抵消 letter-spacing 末尾空白导致的整体偏左
+}
+
+// 暗色模式兜底：黑色不可见，改用浅色文字
+html[saved-theme="dark"] .center article hr::before {
+  color: var(--light);
+}
+
+// 手动开关：恢复原始横线
+body.hr-stars-off .center article hr {
+  border-top: 1px solid var(--lightgray);
+  height: 0;
+  margin: 2rem 0;
+}
+body.hr-stars-off .center article hr::before {
+  content: none;
+}
+
+// ============================================================================
+// 25) 引用块（blockquote）：去掉左侧竖线，左上加巨大上引号，内容整体右缩进一点点
+//     根因：框架 base.scss:391 给 blockquote 设了 border-left:3px solid var(--secondary)（竖线）
+//           和 padding-left:1rem，是传统的“左边一条线”引用样式。
+//     修法：① 去 border-left（清掉竖线）；
+//           ② ::before 用绝对定位在左上角放一个巨大上引号 “（U+201C）；
+//              - 字号 5rem（够大才有装饰感，3.5rem 视觉上不够）；
+//              - 用 Georgia / serif 字体（这个字符在衬线字体下更饱满圆润）；
+//              - top:-1.2rem left:-0.4rem 让引号明显“探出”左上角，与正文拉开；
+//              - 颜色用淡灰 var(--gray)，加 opacity:.55 做水印感，不抢内容。
+//           ③ padding-top 给上面腾位置避免压到第一行；padding-left 略增让正文往右挪。
+//           ④ 不加斜体——中文斜体不自然，且现代引用块风格（Substack/Medium）也不用斜体。
+//     手动开关：给 <body> 加 class「quote-mark-off」可恢复原始竖线样式。
+//     注意：Quartz 把 Obsidian 的 callout 也渲染成 <blockquote class="callout">，
+//           本节省略用 :not(.callout) 排除它，否则 callout 会被误加大引号、
+//           且被清掉上下间距 / 左缩进，破坏 callout 原本的样式。
+//     如需关闭：注释掉本节省略即可。
+// ============================================================================
+.center article blockquote:not(.callout) {
+  position: relative;        // 给引号做定位基准
+  border-left: none;         // 去掉左侧竖线
+  margin: 0;                 // 无上下 margin
+  padding: 0 1rem 0 2.2rem;  // 无上下 padding，左侧留出引号的空间
+  color: inherit;
+}
+
+.center article blockquote:not(.callout)::before {
+  content: "\201C";          // 左双引号 "
+  position: absolute;
+  left: 0;                   // 贴左边
+  top: 0.3rem;               // 略往下移，与第一行文字视觉平齐
+  font-size: 3rem;           // 再大一点
+  line-height: 0.8;          // 与 body line-height 一致，基线自然对齐
+  font-weight: 700;
+  color: var(--gray);        // 淡灰装饰
+  opacity: 0.6;
+  font-family: Georgia, "Times New Roman", serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+// 手动开关：恢复原始竖线样式（同样排除 callout）
+body.quote-mark-off .center article blockquote:not(.callout) {
+  border-left: 3px solid var(--secondary);
+  padding: 1rem 1rem 1rem 1rem;
+}
+body.quote-mark-off .center article blockquote:not(.callout)::before {
+  content: none;
+}
+
+// ============================================================================
+// 26) 仅在首页（index 页）隐藏 Properties、content-meta 与 recent-notes
+//     根因：首页 <body> 带 data-slug="index"，该页不想展示自己的 frontmatter
+//           属性表（.note-properties，即「Properties」折叠块）、元信息行
+//           （.content-meta，日期/标签那一行），以及「最近笔记」区块
+//           （.recent-notes，含 .recent-ul / .recent-li 列表）。
+//     修法：用 body[data-slug="index"] 把作用域限定在首页，只隐藏这三项；
+//           其他任意页面（含子目录索引页，其 data-slug 形如 "子目录/index"）
+//           均不受影响。
+//     注意：data-slug="index" 仅精确匹配首页；若想连子目录索引页也一并隐藏，
+//           需改用更宽的选择器（如 body[data-slug$="/index"] 或给首页
+//           单独打标记）。
+//     如需恢复：注释掉本节省略即可。
+// ============================================================================
+body[data-slug="index"] {
+  .note-properties,
+  .content-meta,
+  .recent-notes {
+    display: none;
+  }
+}
