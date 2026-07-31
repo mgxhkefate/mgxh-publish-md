@@ -211,10 +211,10 @@
       "installedAt": "2026-07-20T04:59:50.923Z"
     },
     "reader-mode": {
-      "source": "github:quartz-community/reader-mode",
-      "resolved": "https://github.com/quartz-community/reader-mode.git",
-      "commit": "73c8bce66df8835510ffac47e53b1ca0f7efd51e",
-      "installedAt": "2026-07-20T04:58:20.412Z"
+      "source": "git+https://github.com/mgxhkefate/reader-mode.git",
+      "resolved": "https://github.com/mgxhkefate/reader-mode.git",
+      "commit": "e29ff80f71ff506a79cc793e99b8eaf69cd1bfd8",
+      "installedAt": "2026-07-31T22:50:00.000Z"
     },
     "recent-notes": {
       "source": "github:quartz-community/recent-notes",
