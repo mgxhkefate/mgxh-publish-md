@@ -36,8 +36,6 @@ jobs:
         with:
           path: .quartz/plugins
           key: ${{ runner.os }}-plugins-${{ hashFiles('quartz.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-plugins-
       - name: Install Dependencies
         run: npm ci
       - name: Install Quartz plugins
