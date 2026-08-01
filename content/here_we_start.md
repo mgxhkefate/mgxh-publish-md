@@ -74,7 +74,7 @@ views:
         - and:
             - file.hasProperty("noteType")
             - '!file.name.contains("index")'
-            - '!file.name.contains("README")'
+            - '!file.name.contains("here_we_start")'
     order:
       - formula.name
       - formula.类型

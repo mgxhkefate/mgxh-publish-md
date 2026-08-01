@@ -730,15 +730,22 @@ body.hr-stars-off .center article hr::before {
 }
 
 // ============================================================================
-// 26) 仅在首页（index 页）隐藏 Properties、content-meta 与 recent-notes
+// 26) 仅在首页（index 页）隐藏 Properties、content-meta、recent-notes，
+//     并清空「左右侧栏」内部内容（保留两侧栏本身）
 //     根因：首页 <body> 带 data-slug="index"，该页不想展示自己的 frontmatter
 //           属性表（.note-properties，即「Properties」折叠块）、元信息行
-//           （.content-meta，日期/标签那一行），以及「最近笔记」区块
-//           （.recent-notes，含 .recent-ul / .recent-li 列表）。
-//     修法：用 body[data-slug="index"] 把作用域限定在首页，只隐藏这三项；
+//           （.content-meta，日期/标签那一行）、「最近笔记」区块
+//           （.recent-notes，含 .recent-ul / .recent-li 列表）；
+//           左侧栏内的文件树/标题/搜索/阅读模式，以及右侧栏内的关系图谱
+//           （.graph，首页中它就在右侧栏内）也都想清掉，做成干净的落地页。
+//     修法：用 body[data-slug="index"] 把作用域限定在首页，只隐藏前三项；
+//           左右侧栏均改为「保留容器、清空内部所有子元素」
+//           （.sidebar.left > * / .sidebar.right > *），栏本身不消失、
+//           页面布局列不变，正文区位置与其余页面保持一致。
+//           关系图谱随右侧栏清空一并隐藏（其 DOM 是 .right.sidebar > .graph）。
 //           其他任意页面（含子目录索引页，其 data-slug 形如 "子目录/index"）
 //           均不受影响。
-//     注意：data-slug="index" 仅精确匹配首页；若想连子目录索引页也一并隐藏，
+//     注意：data-slug="index" 仅精确匹配首页；若想连子目录索引页也一并处理，
 //           需改用更宽的选择器（如 body[data-slug$="/index"] 或给首页
 //           单独打标记）。
 //     如需恢复：注释掉本节省略即可。
@@ -747,6 +754,16 @@ body[data-slug="index"] {
   .note-properties,
   .content-meta,
   .recent-notes {
+    display: none;
+  }
+  // 左侧栏：保留栏本身（布局列不变），仅清空其内部所有内容
+  // （站点标题、搜索框、阅读模式、explorer 文件树等）
+  .sidebar.left > * {
+    display: none;
+  }
+  // 右侧栏：同理保留栏本身、清空内部内容；
+  // 首页右栏当前仅含关系图谱（.graph，含 global-graph-icon 按钮），一并清空
+  .sidebar.right > * {
     display: none;
   }
 }

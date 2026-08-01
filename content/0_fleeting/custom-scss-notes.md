@@ -40,7 +40,7 @@ title: custom.scss 片段整理
 - [22) Bases 表格斑马纹含表头](#sec22)
 - [24) 分割线 \* \* \*](#sec24)
 - [25) 引用块左侧上引号](#sec25)
-- [26) 首页隐藏 Properties、content-meta 与 recent-notes](#sec26)
+- [26) 首页隐藏 Properties、content-meta、recent-notes，并清空左右侧栏内容](#sec26)
 - [27) Callout 内相邻块间距折叠](#sec27)
 
 <a id="sec1"></a>
@@ -754,13 +754,13 @@ body.quote-mark-off .center article blockquote:not(.callout)::before {
 
 <a id="sec26"></a>
 
-## 26) 首页隐藏 Properties、content-meta 与 recent-notes
+## 26) 首页隐藏 Properties、content-meta、recent-notes，并清空左右侧栏内容
 
-仅在**首页**(index 页) 隐藏「Properties」折叠块 (`.note-properties`)、元信息行 (`.content-meta`，即日期 / 标签那一行)，以及「最近笔记」区块 (`.recent-notes`，含其内部的 `.recent-ul` / `.recent-li` 列表)。
+仅在**首页**(index 页) 隐藏「Properties」折叠块 (`.note-properties`)、元信息行 (`.content-meta`，即日期 / 标签那一行)、「最近笔记」区块 (`.recent-notes`，含其内部的 `.recent-ul` / `.recent-li` 列表)；同时把**左右两侧栏内部所有内容清空**，但**保留两侧栏容器本身**（做成干净的落地页）。
 
-- **根因**：首页 `<body>` 带 `data-slug="index"`，该页不想展示自己的 frontmatter 属性表、元信息行，也不想显示最近笔记列表。
-- **修法**：用 `body[data-slug="index"]` 把作用域严格限定在首页，只隐藏这三项；其他任意页面**(含子目录索引页，其 `data-slug` 形如 `子目录/index`) 均不受影响**。
-- **注意**：`data-slug="index"` 仅精确匹配首页；若想连子目录索引页也一并隐藏，需改用更宽的选择器 (如 `body[data-slug$="/index"]`)。
+- **根因**：首页 `<body>` 带 `data-slug="index"`，该页不想展示自己的 frontmatter 属性表、元信息行、最近笔记列表；也不想显示左侧栏里的文件树（explorer）/ 站点标题 / 搜索框 / 阅读模式，以及右侧栏里的**关系图谱**（`.graph`，已确认在首页中它就位于 `.right.sidebar` 内，含 `button.global-graph-icon` 按钮）。
+- **修法**：用 `body[data-slug="index"]` 把作用域严格限定在首页，只隐藏前三项；其他任意页面**(含子目录索引页，其 `data-slug` 形如 `子目录/index`) 均不受影响**。左右侧栏均**不是整栏 `display:none`**，而是用 `.sidebar.left > *` / `.sidebar.right > *` 隐藏其内部所有子元素——这样两侧栏容器仍占着布局列（页面不会因少栏而扩展、正文区位置与其余页面保持一致），但栏内变成空白。关系图谱随右侧栏清空一并隐藏，不必再单独写 `.graph` 规则。
+- **注意**：`data-slug="index"` 仅精确匹配首页；若想连子目录索引页也一并处理，需改用更宽的选择器 (如 `body[data-slug$="/index"]`)。如果反而想“整栏直接消失、正文区扩展占满”，把 `.sidebar.left > *` / `.sidebar.right > *` 改成 `.sidebar.left` / `.sidebar.right` 即可。
 - **关闭**：注释掉本节省略即可。
 
 ```scss
@@ -768,6 +768,14 @@ body[data-slug="index"] {
   .note-properties,
   .content-meta,
   .recent-notes {
+    display: none;
+  }
+  // 左侧栏：保留栏本身（布局列不变），仅清空其内部所有内容
+  .sidebar.left > * {
+    display: none;
+  }
+  // 右侧栏：同理；首页右栏仅含关系图谱（.graph），一并清空
+  .sidebar.right > * {
     display: none;
   }
 }
