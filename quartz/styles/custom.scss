@@ -710,7 +710,7 @@ body.hr-stars-off .center article hr::before {
   position: relative;        // 给引号做定位基准
   border-left: none;         // 去掉左侧竖线
   margin: 0;                 // 无上下 margin
-  padding: 0 1rem 0 2.2rem;  // 无上下 padding，左侧留出引号的空间
+  padding: 0 1rem 0 2.5rem;  // 无上下 padding，左侧留出引号的空间
   color: inherit;
 }
 
@@ -727,15 +727,6 @@ body.hr-stars-off .center article hr::before {
   font-family: Georgia, "Times New Roman", serif;
   pointer-events: none;
   user-select: none;
-}
-
-// 手动开关：恢复原始竖线样式（同样排除 callout）
-body.quote-mark-off .center article blockquote:not(.callout) {
-  border-left: 3px solid var(--secondary);
-  padding: 1rem 1rem 1rem 1rem;
-}
-body.quote-mark-off .center article blockquote:not(.callout)::before {
-  content: none;
 }
 
 // ============================================================================
@@ -758,4 +749,23 @@ body[data-slug="index"] {
   .recent-notes {
     display: none;
   }
+}
+
+// ============================================================================
+// 27) Callout 内相邻块元素（段落 / 列表 / 标题等）的间距按正文一样“折叠”，而非叠加
+//     根因：callouts.scss 给 .callout-content 设了 display:grid。
+//           关键：grid/flex 容器的子项不会发生 margin 折叠（margin collapsing），
+//           因此 callout 里「段落后接列表」会变成 p.margin-bottom + ul.margin-top 相加（间距翻倍），
+//           而正文 .center article 是普通文档流，相邻块级元素 margin 会折叠成较大者（Normal 行为）。
+//           这导致同一份 Markdown 在正文里间距正常、放进 callout 却异常变宽。
+//     修法：把 .callout-content 改回 display:block（普通流），让内部块级元素重新走 margin 折叠，
+//           与正文表现一致；不影响 callout 折叠动画（动画靠子元素 height:0 实现，与 display 无关）。
+//     手动开关：给 <body> 加 class“callout-collapse-off”可恢复主题的 grid 行为（保留原 bug）。
+// ============================================================================
+.center article .callout .callout-content {
+  display: block;
+}
+
+body.callout-collapse-off .center article .callout .callout-content {
+  display: grid;
 }

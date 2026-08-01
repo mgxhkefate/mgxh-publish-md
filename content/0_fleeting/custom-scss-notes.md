@@ -4,7 +4,7 @@ tags:
   - quartz
 description: 站点 custom.scss 自定义样式片段的整理笔记：逐节说明各样式的作用、根因与修法，并附带真实 SCSS 代码 (涵盖正文排版、标题、库/侧栏标题、表格、代码块限高、霞鹜文楷、高亮、滚动条、阅读模式按钮、Bases 表格等)。
 created: 2026-07-31 14:09
-modified: 2026-07-31 22:12
+modified: 2026-08-01 12:15
 cssclasses:
 noteType: experience
 title: custom.scss 片段整理
@@ -41,6 +41,7 @@ title: custom.scss 片段整理
 - [24) 分割线 \* \* \*](#sec24)
 - [25) 引用块左侧上引号](#sec25)
 - [26) 首页隐藏 Properties、content-meta 与 recent-notes](#sec26)
+- [27) Callout 内相邻块间距折叠](#sec27)
 
 <a id="sec1"></a>
 
@@ -769,6 +770,26 @@ body[data-slug="index"] {
   .recent-notes {
     display: none;
   }
+}
+```
+
+<a id="sec27"></a>
+
+## 27) Callout 内相邻块间距折叠
+
+修复 callout 内“段落与列表相邻”时间距被叠加 (翻倍) 的问题，使其与正文 (普通文档流) 的 margin 折叠行为一致。
+
+- **根因**：`callouts.scss` 给 `.callout-content` 设了 `display: grid`。关键点是——**grid/flex 容器的子项不会发生 margin 折叠 (margin collapsing)**：因此 callout 里“段落后接列表”会算成 `p.margin-bottom + ul.margin-top` 相加，间距翻倍；而正文 `.center article` 是普通文档流，相邻块级元素的 margin 会折叠成较大者 (正常行为)。同一份 Markdown 在正文里间距正常、放进 callout 却异常变宽，就是这个差异。
+- **修法**：把 `.callout-content` 改回 `display: block`(普通流)，让内部块级元素重新走 margin 折叠，与正文完全一致。该 callout 的折叠动画靠子元素 `height: 0` 实现，与 `display` 无关，因此不受影响。
+- **手动开关**：给 `<body>` 加 class“callout-collapse-off”可恢复主题的 grid 行为 (即保留原 bug)。
+
+```scss
+.center article .callout .callout-content {
+  display: block;
+}
+
+body.callout-collapse-off .center article .callout .callout-content {
+  display: grid;
 }
 ```
 
