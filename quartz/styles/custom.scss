@@ -491,7 +491,7 @@ body.italic-underline-off .center article i {
 // ============================================================================
 // 15) 阅读模式按钮：开 / 关两套图标 + 灰色（不再近黑）
 //     根因：quartz-themes 用 button.readermode { background: var(--quartz-icon-color); mask-image: var(--readermode-icon) }
-//           把按钮画成单色图标。原 --readermode-icon 是固定的一本“打开的书”（Lucide book-open，描边风），
+//           把按钮画成单色图标。原 --readermode-icon 是固定的一本"打开的书"（Lucide book-open，描边风），
 //           且 --quartz-icon-color 在亮色模式为 #2b2b2b（近黑），故按钮一直是一本书、且是黑色。
 //     修法：① 关（reader-mode=off）→ 打开的书 book-open；开（reader-mode=on）→ 带勾的书
 //           book-open-check，两套图标随 reader-mode 属性切换（与暗色模式 sun / moon 同源机制）。
@@ -505,7 +505,7 @@ body.italic-underline-off .center article i {
   --readermode-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgNXYxNiIvPjxwYXRoIGQ9Ik0yMC4wMDEgMTlBMiAyIDAgMDAyMiAxN1Y1YTIgMiAwIDAwLTEuOTk5LTJMMTYgMy4wMDJBNSA1IDAgMDAxMiA1YTUgNSAwIDAwLTQtMkg0YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDEuOTk5IDJIOGE1IDUgMCAwMTQgMiA1IDUgMCAwMTQtMnoiLz48L3N2Zz4=');   // 关：打开的书
 }
 :root[reader-mode="on"] .readermode {
-  --readermode-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgNXYxNiIvPjxwYXRoIGQ9Im0xNiAxMiAyIDIgNC00Ii8+PHBhdGggZD0iTTIyIDZWNWEyIDIgMCAwMC0xLjk5OS0yTDE2IDMuMDAyQTUgNSAwIDAwMTIgNWE1IDUgMCAwMC00LTJINGEyIDIgMCAwMC0yIDJ2MTJhMiAyIDAgMDAxLjk5OSAySDhhNSA1IDAgMDE0IDIgNSA1IDAgMDE0LTJoNC4wMDFBMiAyIDAgMDAyMiAxN3YtMS4zNDQiLz48L3N2Zz4=');   // 开：带勾的书
+  --readermode-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgNXYxNiIvPjxwYXRoIGQ9Im0xNiAxMiAyIDIgNC00Ii8+PHBhdGggZD0iTTIyIDZWNGEyIDIgMCAwMC0xLjk5OS0yTDE2IDMuMDAyQTUgNSAwIDAwMTIgNWE1IDUgMCAwMC00LTJINGEyIDIgMCAwMC0yIDJ2MTJhMiAyIDAgMDAxLjk5OSAySDhhNSA1IDAgMDE0IDIgNSA1IDAgMDE0LTJoNC4wMDFBMiAyIDAgMDAyMiAxN3YtMS4zNDQiLz48L3N2Zz4=');   // 开：带勾的书
 }
 
 // ============================================================================

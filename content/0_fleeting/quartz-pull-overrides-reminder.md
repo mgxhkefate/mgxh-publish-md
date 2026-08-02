@@ -18,7 +18,7 @@ title: Quartz 官方 pull 后需重调的定制项
 | 项 | 文件 | 是否会被 pull 覆盖 | 风险 |
 |---|---|---|---|
 | 1. 站点图标 favicon | `quartz/static/icon.png` | **是**(框架自带默认图标) | 高 |
-| 2. 阅读模式默认开启 | 已**固化**（config 指向自建 fork `mgxhkefate/reader-mode`，默认开） | 否（除非手动同步上游） | 低 |
+| 2. 阅读模式 | 已**还原为官方版** `github:quartz-community/reader-mode`（默认**关闭**，不再 fork、不再默认开） | 否 | 低 |
 | 3. quartz.config.yaml 插件条目 | `quartz.config.yaml` | 合并冲突时**可能丢** | 中 |
 | 4. custom.scss 覆盖层 | `quartz/styles/custom.scss` | 否 (用户文件) | 低，但需复核 |
 
@@ -68,48 +68,12 @@ cd D:/XL/quartz && npx quartz build
 
 ---
 
-## 2. 阅读模式默认开启（已固化，低风险）
+## 2. 阅读模式（已还原为官方版，2026-08-02 撤销）
 
-- **当前状态（2026-07-31 固化）**：阅读模式默认开启已通过**自建 fork `mgxhkefate/reader-mode` 固化**——该 fork 的初始状态为「开启」，且 `quartz.config.yaml` 已指向 `git+https://github.com/mgxhkefate/reader-mode.git`。常规 pull 官方 Quartz 框架不会再把它打回关闭。
-- **为什么会被覆盖**：这个插件是独立 git 仓库 (`.quartz/plugins/reader-mode/.git`)，`npx quartz sync` 或插件更新时会把 `dist/` 重新拉回默认 (默认 `false` = 关闭)。源码里的 `let isReaderMode = false` 也会被重置。
-- **手动重调步骤（仅当你主动 `git fetch upstream` 同步官方 reader-mode 更新后才需要）**：改三处 (关键：**Quartz 实际打包的是 `dist/components/index.js` 那份 inline script**，只改 `dist/index.js` 没用——这是之前踩过的坑)。
-
-```bash
-PLUGIN=D:/XL/quartz/.quartz/plugins/reader-mode
-```
-
-  - **(a) 必须改 — `dist/components/index.js`(约第 314 行)**
-    找到这一行 (inline 脚本字符串)：
-
-    ```js
-    var readermode_inline_default = 'var n=!1,o=t=>{ ... }';
-    ```
-
-    把其中的 `var n=!1` 改为 `var n=!0`(即 `isReaderMode = true`)。
-
-    完整替换示例：
-
-    ```js
-    var readermode_inline_default = 'var n=!0,o=t=>{let e=new CustomEvent("readermodechange",{detail:{mode:t}});document.dispatchEvent(e)},d=()=>{let t=()=>{n=!n;let e=n?"on":"off";document.documentElement.setAttribute("reader-mode",e),o(e)};for(let e of document.getElementsByClassName("readermode"))e.addEventListener("click",t),window.addCleanup(()=>e.removeEventListener("click",t));document.documentElement.setAttribute("reader-mode",n?"on":"off")};document.addEventListener("nav",d);document.addEventListener("render",d);\n';
-    ```
-
-  - **(b) 平行副本 — `dist/index.js`(约第 314 行)**
-    同上，把 `var n=!1` 改为 `var n=!0`，保持与 (a) 一致 (避免以后某次构建命中这份)。
-
-  - **(c) 源码 — `src/components/scripts/readermode.inline.ts`**
-
-    ```ts
-    let isReaderMode = false;   // → 改为 true
-    ```
-
-    改这个是为了万一将来重新编译插件时一致 (直接编辑 dist 不会被 ts 重新编，但留着以防万一)。
-
-```bash
-# 改完重新构建
-cd D:/XL/quartz && npx quartz build
-```
-
-- **验证**：构建后 `public/prescript-*.js` 里应出现 `var t=!0`(默认开启)；浏览器打开站点，进站即隐藏侧栏，点右上角按钮可退出。
+- **当前状态（2026-08-02 撤销）**：阅读模式已**还原为官方原版** `github:quartz-community/reader-mode`——`quartz.config.yaml` 源改回官方，`quartz.lock.json` 同步改回官方源 + 官方 commit（`5612a68…`）。**不再**使用自建 fork，也**不再默认开启**：进站是正常模式，需手动点右上角按钮进入阅读模式。
+- **为什么改回**：当初为「默认开启」做了 fork 并固化，后来确认并不想要默认阅读模式，只想用官方阅读模式手动切换；fork 仓库将随官方版回归一并删除。
+- **构建注意（CI 缓存陷阱，重点）**：`.github/workflows/deploy.yml` 用 `quartz.lock.json` 的哈希作缓存键来缓存 `.quartz/plugins`。**只改 `quartz.config.yaml` 而不改 `quartz.lock.json`，CI 会复用旧的 `.quartz/plugins/reader-mode` 克隆，构建出的插件不随 config 变化**——这正是之前「换成 fork 后构建还是官方」的根因。今后任何插件源切换，务必同步改 `quartz.config.yaml` 与 `quartz.lock.json`（锁哈希变了 → 缓存失效 → 重新拉取正确源）。
+- 本项已无需「pull 后重调」步骤；若将来要重新用 fork 默认开，再补回本节。
 
 ---
 
@@ -118,7 +82,7 @@ cd D:/XL/quartz && npx quartz build
 - **为什么要注意**：`quartz.config.yaml` 是我的配置文件。从官方 pull 时若官方也改了这个文件，Git 会报合并冲突，处理不当会把我加的自定义插件丢掉，站点直接构建失败或功能缺失。
 - **重调步骤**：pull / 合并后，打开 `quartz.config.yaml`，确认以下条目**都还在**：
   - 5 个自研插件 (在 `plugins` 段，以 `source: "./custom-plugins/<name>"` 或 git URL 引用)：`no-referrer-images`、`lxgw-font`、`image-zoom`、`mermaid-selfhost`、`markdown-image-size`。
-  - 阅读模式插件：`git+https://github.com/mgxhkefate/reader-mode.git`(在 `plugins` 段，自建 fork、默认开)。
+  - 阅读模式插件：`github:quartz-community/reader-mode`（官方版，默认关闭；不再用 fork）。
   - 这些插件的 `component` 注册 (如 `reader-mode`、`lxgw-font` 等) 也需在对应组件段保留。
 - **注意**：自研插件在 `custom-plugins/` 或独立 git 仓库里 (被主仓库 `.gitignore` 忽略)，pull Quartz 本身不会动它们；但这里只检查「config 是否还引用它们」。
 
@@ -130,7 +94,7 @@ cd D:/XL/quartz && npx quartz build
 - **但有一个隐患**：custom.scss 里的规则是通过**覆盖框架 `base.scss` 等的选择器**来生效的 (例如清掉 `hr` 的 `background`、清掉 `blockquote` 的 `border-left`)。如果未来某个 Quartz 版本**重命名 / 移动了这些底层选择器**，覆盖会**静默失效**(不会报错，只是样式回退到默认)。
 - **重调步骤 (pull 后肉眼复核清单)**：
   1. 刷新站点，确认 favicon 仍是自己的图标 (见第 1 项)。
-  2. 确认进站是阅读模式 (见第 2 项)。
+  2. 确认阅读模式按钮可用、默认关闭 (见第 2 项)。
   3. 查看一篇有 `---` 分割线的笔记：应是居中黑色加粗 `* * *`，无灰色背景。
   4. 查看一个引用块 `>`：左侧应无竖线、左侧有装饰性大引号、内容右缩进。
   5. 首页：不应出现 Properties 折叠块与日期 / 标签元信息行。

@@ -224,7 +224,7 @@ plugins:
       position: left
       priority: 30
       group: toolbar
-  - source: git+https://github.com/mgxhkefate/reader-mode.git
+  - source: github:quartz-community/reader-mode
     enabled: true
     layout:
       position: left
