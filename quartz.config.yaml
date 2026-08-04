@@ -180,7 +180,9 @@ plugins:
     layout:
       position: left
       priority: 50
-  - source: "git+https://github.com/mgxhkefate/graph.git"
+  - source:
+      repo: "git+https://github.com/mgxhkefate/graph.git"
+      name: "graph-zh"
     enabled: true
     layout:
       position: right
