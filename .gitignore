@@ -15,3 +15,4 @@ docs
 .workbuddy
 # 自定义插件已各自独立成 GitHub 仓库（见 quartz.config.yaml 的 git+https 源），不再纳入主仓库跟踪
 custom-plugins/
+.obsidianignore
