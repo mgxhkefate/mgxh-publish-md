@@ -180,7 +180,7 @@ plugins:
     layout:
       position: left
       priority: 50
-  - source: github:quartz-community/graph
+  - source: "git+https://github.com/mgxhkefate/graph.git"
     enabled: true
     layout:
       position: right

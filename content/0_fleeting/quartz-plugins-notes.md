@@ -63,3 +63,14 @@ title: Quartz 自定义插件介绍
 **仓库地址**
 
 - https://github.com/mgxhkefate/markdown-image-size
+
+---
+
+### 附：graph 插件（社区插件）的本地修复
+
+本站的关系图谱使用的是社区插件 `github:quartz-community/graph`（非自研，故未列入上面五个）。该插件在「中文文件名的当前页节点」上有一个编码显示 bug，我已打补丁修复；详细的根因、补丁位置与重放步骤见 [[quartz-pull-overrides-reminder#5. graph 插件中文节点 %xx% 修复]]。
+
+- **现象**：打开一个中文文件名的笔记，其关系图谱里「当前页」那个节点显示成 `%xx%` 编码串（如 `0_fleeting/%E5%A5%A5…`），而非中文；其余节点正常。
+- **根因**：图谱取「当前页 slug」（`window.location.pathname` / SPA 导航事件 `e.detail.url`）在你的环境里是 URL 编码态，而图谱数据 `contentIndex.json` 的 key / `title` 是未编码中文，两者匹配不上 → `title` 取不到 → 回退显示编码 slug。
+- **修法**：在插件实际加载的 `dist` 产物（`.quartz/plugins/graph/dist/components/index.js` 与 `dist/index.js`）里，对所有 slug 统一加 `decodeURIComponent`，共五处（当前页 slug、数据 key、链接目标、标签 slug、文本回退值）；`src/components/scripts/graph.inline.ts` 也同步加了 `decodeSlug` 安全封装（build 不读 src，仅供参考）。
+- **持久性提醒**：补丁打在 `dist/` 里，`dist` 不进 git，`npx quartz build --upgrade` 或插件被重新拉取时会被覆盖、问题复现。彻底方案：fork 到 `mgxhkefate/graph` 并提交打好补丁的 `dist/`，把 `quartz.config.yaml` 的 `source` 改成 `git+https://github.com/mgxhkefate/graph.git`（沿用 `markdown-image-size` 的同款模式）。
