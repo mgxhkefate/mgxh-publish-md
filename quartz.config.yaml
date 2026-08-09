@@ -97,6 +97,9 @@ plugins:
   - source: github:quartz-community/description
     enabled: true
     order: 70
+  - source: "git+https://github.com/mgxhkefate/force-display-math.git"
+    enabled: true
+    order: 79
   - source: github:quartz-community/latex
     enabled: true
     options:

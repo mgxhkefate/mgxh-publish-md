@@ -2,9 +2,9 @@
 aliases:
 tags:
   - quartz
-description: 站点 custom.scss 自定义样式片段的整理笔记：逐节说明各样式的作用、根因与修法，并附带真实 SCSS 代码 (涵盖正文排版、标题、库/侧栏标题、表格、代码块限高、霞鹜文楷、高亮、滚动条、阅读模式按钮、Bases 表格等)。
+description: 站点 custom.scss 自定义样式片段的整理笔记：逐节说明各样式的作用、根因与修法，并附带真实 SCSS 代码 (涵盖正文排版、标题、库/侧栏标题、表格、代码块限高与间距、霞鹜文楷、高亮、滚动条、阅读模式按钮、Bases 表格、Callout 间距折叠与 margin 归零等)。
 created: 2026-07-31 14:09
-modified: 2026-08-01 12:15
+modified: 2026-08-09 13:32
 cssclasses:
 noteType: experience
 title: custom.scss 片段整理
@@ -26,6 +26,7 @@ title: custom.scss 片段整理
 - [6) 正文霞鹜文楷](#sec6)
 - [7) 图片与 Mermaid 居中](#sec7)
 - [8) 代码块限高](#sec8)
+- [8.1) 代码块间距](#sec81)
 - [9) 正文加粗增强](#sec9)
 - [10) 正文高亮马克笔风格](#sec10)
 - [11) 表格居中与圆角](#sec11)
@@ -42,6 +43,7 @@ title: custom.scss 片段整理
 - [25) 引用块左侧上引号](#sec25)
 - [26) 首页隐藏 Properties、content-meta、recent-notes，并清空左右侧栏内容](#sec26)
 - [27) Callout 内相邻块间距折叠](#sec27)
+- [28) Callout 首块/折叠 margin 归零](#sec28)
 
 <a id="sec1"></a>
 
@@ -267,6 +269,30 @@ html body .explorer button.mobile-explorer h2 {
 .center article pre:not(:has(> code.mermaid-selfhost)) {
   max-height: 24rem; // 15 × 1.6rem
   overflow: auto;
+}
+```
+
+<a id="sec81"></a>
+
+## 8.1) 代码块间距
+
+代码块上下间距与正文段落保持一致（相邻块只算一个间距），并在 callout 开头取消代码块的上边距。
+
+- **结构**：rehype-pretty-code 把代码块包进 `<figure data-rehype-pretty-code-figure>`，内层是 `<pre>`。
+- **根因**：`base.scss` 里 figure 为 `margin:0`，而内层 `<pre>` 未被显式设 margin，落到浏览器 UA 默认 `margin:1em 0`。① 正文里 figure 无 padding/border，`<pre>` 的 1em 会“塌陷穿透” figure，与相邻段落折叠成一个间距——表现正常；② 但 `.callout-content` 被第 27 节改成 `display:flow-root`（建 BFC），BFC 会“阻断父子 margin 塌陷”，于是 `<pre>` 的 1em 不再穿透、变成 figure 实打实的上边距，而第 28 节 `:first-child{margin-top:0}` 只命中外层 figure（本就 0）、命中不到里面泄漏出来的 pre margin → callout 开头出现无法取消的大空白（与公式 bug 同源）。
+- **修法**：给 figure wrapper 显式 `margin:1rem 0`（与正文段落 UA 1em≈1rem 一致），并清零内层 `>pre` 的 UA margin，让间距完全可控、且能被 `:first-child` 归零；相邻块仍走正常 margin 折叠（只算一个间距）。极少数未被 rehype-pretty-code 包裹的裸 `<pre>` 同步设为 `margin:1rem 0`。
+- **关闭**：注释掉下方两条规则即可。
+
+```scss
+.center article figure[data-rehype-pretty-code-figure] {
+  margin: 1rem 0; // 与正文段落间距一致
+  > pre {
+    margin: 0;    // 清掉 UA 默认 1em，避免从 figure 内泄漏、在 flow-root 里变开头空白
+  }
+}
+// 极少数未被 rehype-pretty-code 包裹的裸 <pre>（如插件生成）同步处理
+.center article > pre {
+  margin: 1rem 0;
 }
 ```
 
@@ -785,20 +811,46 @@ body[data-slug="index"] {
 
 ## 27) Callout 内相邻块间距折叠
 
-修复 callout 内“段落与列表相邻”时间距被叠加 (翻倍) 的问题，使其与正文 (普通文档流) 的 margin 折叠行为一致。
+修复 callout 内“段落与列表相邻”时间距被叠加 (翻倍) 的问题，使其与正文 (普通文档流) 的 margin 折叠行为一致；同时为第 28 节的「首块 margin-top 归零」建立 BFC 基础。
 
 - **根因**：`callouts.scss` 给 `.callout-content` 设了 `display: grid`。关键点是——**grid/flex 容器的子项不会发生 margin 折叠 (margin collapsing)**：因此 callout 里“段落后接列表”会算成 `p.margin-bottom + ul.margin-top` 相加，间距翻倍；而正文 `.center article` 是普通文档流，相邻块级元素的 margin 会折叠成较大者 (正常行为)。同一份 Markdown 在正文里间距正常、放进 callout 却异常变宽，就是这个差异。
-- **修法**：把 `.callout-content` 改回 `display: block`(普通流)，让内部块级元素重新走 margin 折叠，与正文完全一致。该 callout 的折叠动画靠子元素 `height: 0` 实现，与 `display` 无关，因此不受影响。
+- **修法**：把 `.callout-content` 改为 `display: flow-root`（普通流 + 建立 BFC）。相对 `block` 的两点考量：① 仍让内部块级元素走 margin 折叠，与正文一致；② 建立 BFC 能**阻断第一个块的 margin-top 塌陷穿透 content 顶部、叠加 `.callout-title` 的 padding**（若不建 BFC，第 28 节归零首块上边距后仍会有塌陷外溢的残留空白）。callout 折叠动画靠子元素 `height:0` 实现，与 `display` 无关，因此不受影响。
 - **手动开关**：给 `<body>` 加 class“callout-collapse-off”可恢复主题的 grid 行为 (即保留原 bug)。
 
 ```scss
 .center article .callout .callout-content {
-  display: block;
+  display: flow-root;
 }
 
 body.callout-collapse-off .center article .callout .callout-content {
   display: grid;
 }
+
+<a id="sec28"></a>
+
+## 28) Callout 内首个块的 margin-top 归零（仅首块、绝不碰下边距）+ 折叠态上下 margin 归零
+
+- **callout 真实结构**：`<blockquote class="callout">` > `<div class="callout-content">` > 块（公式 / 代码 / 列表 / 段落直接是子节点）。
+- **背景**：`callouts.scss` 的「`.callout-content > :first-child { margin-top:0 }`」与 MathJax 注入的「`mjx-container[display="true"] { margin:1em 0 }`」特异性同为 (0,2,0)，后者后加载 → 胜出，首个块的 margin-top 未被归零；在 flow-root（第 27 节）下该 margin-top 塌陷外溢、叠加 `.callout-title` 的 `padding-bottom:1rem` → 公式 / 代码块与标题间出现大空白（代码块还会因内层 pre 泄漏而放大）。
+- **修法（仅首块）**：用更高特异性（`.center article` 前缀 → (0,5,0)）只对「callout 内首个块」归零 `margin-top`。公式直接是 `mjx-container`（首子节点）命中 `:first-child` 即归零；代码块是 `figure[...]` 同理；若公式被包裹则 `:first-child mjx-container` 兜底。
+- **⚠ 关键：只归零 margin-top，不碰 margin-bottom**。否则当 callout 仅含一个块（单个列表 / 单个段落 / 单个公式）时，该块同时是首尾，`margin-bottom` 会被误杀 → “单个块下边距消失”的 bug。`.callout-content` 是 flow-root（BFC），会把子块 margin 包含在自身高度内，因此单个块的下边距能正常显示。
+- **折叠态（is-collapsed）**：内容 `height:0` 收起，但 margin 不随 `height` 消失、仍撑出约 2em 空白（`overflow:clip` 只裁内容不裁 margin）。故折叠态需把**全部子块**的上下 margin 一起归零（独立规则，不影响普通 callout）。
+- **说明**：不依赖 `!important`，仅凭特异性 (0,5,0) > (0,2,0) 压过 MathJax，与加载顺序无关。仅首个块受影响；callout 内后续块、正文、非首个公式 / 代码块的上边距均保持不变。
+
+```scss
+// 仅首个块：归零上边距（不动下边距）
+.center article .callout .callout-content > :first-child,
+.center article .callout .callout-content > :first-child mjx-container[display="true"] {
+  margin-top: 0;
+}
+// 折叠态：全部子块上下 margin 归零
+.center article .callout.is-collapsed .callout-content > *,
+.center article .callout.is-collapsed .callout-content > * mjx-container[display="true"],
+.center article .callout.is-collapsed .callout-content > * figure[data-rehype-pretty-code-figure] {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+```
 ```
 
 [^1]: [saberzero1/quartz-themes: Obsidian 🤝 Quartz. Quartz-compatible Obsidian themes.](https://github.com/saberzero1/quartz-themes)

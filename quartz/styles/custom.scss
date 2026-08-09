@@ -250,6 +250,33 @@ html body .explorer button.mobile-explorer h2 {
 }
 
 // ============================================================================
+// 8.1) 代码块间距：与正文一致（相邻块只算一个间距），并在 callout 开头取消上边距
+//      根因：rehype-pretty-code 把代码块包进 <figure data-rehype-pretty-code-figure>
+//            （base.scss 里 figure 为 margin:0），而内层 <pre> 未被显式设 margin，
+//            落到浏览器 UA 默认 margin:1em 0。
+//            ① 正文里 figure 无 padding/border，pre 的 1em 会“塌陷穿透” figure，
+//               与相邻段落折叠成一个间距——表现正常；
+//            ② 但 .callout-content 被第 27 节改成 display:flow-root（建 BFC），
+//               BFC 会“阻断父子 margin 塌陷”，于是 pre 的 1em 不再穿透、
+//               变成 figure 的实打实上边距；而第 28 节的 :first-child{margin-top:0}
+//               只命中外层 figure（本就 0）、命中不到里面泄漏出来的 pre margin
+//               → callout 开头出现无法取消的大空白（与公式 bug 同源）。
+//      修法：给 figure wrapper 显式 margin（与正文段落一致），并清零内层 pre 的 UA margin，
+//            让间距完全可控、且能被 :first-child 归零；相邻块仍走正常 margin 折叠（只算一个间距）。
+//            关闭方式：注释掉下方两条规则即可。
+// ============================================================================
+.center article figure[data-rehype-pretty-code-figure] {
+  margin: 1rem 0; // 与正文段落间距一致
+  > pre {
+    margin: 0;    // 清掉 UA 默认 1em，避免从 figure 内泄漏、在 flow-root 里变开头空白
+  }
+}
+// 极少数未被 rehype-pretty-code 包裹的裸 <pre>（如插件生成）同步处理
+.center article > pre {
+  margin: 1rem 0;
+}
+
+// ============================================================================
 // 9) 正文加粗（strong / b）视觉增强
 //    根因：正文霞鹜文楷（LXGW WenKai）经 lxgw-font 插件注入时，@font-face 只声明了
 //          单一常规字重（font-weight: 400），没有真实粗体文件。因此 font-weight 设成
@@ -775,14 +802,51 @@ body[data-slug="index"] {
 //           因此 callout 里「段落后接列表」会变成 p.margin-bottom + ul.margin-top 相加（间距翻倍），
 //           而正文 .center article 是普通文档流，相邻块级元素 margin 会折叠成较大者（Normal 行为）。
 //           这导致同一份 Markdown 在正文里间距正常、放进 callout 却异常变宽。
-//     修法：把 .callout-content 改回 display:block（普通流），让内部块级元素重新走 margin 折叠，
-//           与正文表现一致；不影响 callout 折叠动画（动画靠子元素 height:0 实现，与 display 无关）。
+//     修法：把 .callout-content 改回 display:flow-root（普通流 + 建立 BFC），让内部块级元素重新走
+//           margin 折叠，与正文表现一致；不影响 callout 折叠动画（动画靠子元素 height:0 实现，
+//           与 display 无关）。flow-root 相对 block 的额外好处：建立 BFC，阻断「第一个块
+//           margin-top 塌陷穿透 content 顶部、叠加 .callout-title 的 padding」的问题（见第 28 节）。
 //     手动开关：给 <body> 加 class“callout-collapse-off”可恢复主题的 grid 行为（保留原 bug）。
 // ============================================================================
 .center article .callout .callout-content {
-  display: block;
+  display: flow-root;
 }
 
 body.callout-collapse-off .center article .callout .callout-content {
   display: grid;
+}
+
+// ============================================================================
+// 28) Callout 内「首个块」的上边距归零——仅限首个块，绝不碰下边距
+//     背景：callout 结构是 <blockquote class="callout"> > <div class="callout-content"> > 块。
+//           callouts.scss 的「.callout-content > :first-child { margin-top:0 }」与
+//           MathJax 的「mjx-container[display="true"] { margin:1em 0 }」特异性同为 (0,2,0)，
+//           后者后加载 → 胜出，首个块的 margin-top 未被归零；
+//           在 flow-root（第 27 节）下该 margin-top 塌陷外溢、叠加 .callout-title 的
+//           padding-bottom:1rem → 公式/代码块与标题间出现大空白。
+//     修法：用更高特异性（加 .center article 前缀 → (0,5,0)）只对「callout 内首个块」归零 margin-top。
+//           ⚠ 关键：只归零 margin-top，不碰 margin-bottom ——
+//             否则当 callout 仅含一个块（单个列表/单个段落/单个公式）时，该块同时是首尾，
+//             margin-bottom 会被误杀 → “单个块下边距消失”的 bug。
+//           公式作首个块：公式直接是 mjx-container（.callout-content 的首子节点），
+//             命中 :first-child 即归零其上边距；若被包裹则用 :first-child mjx-container 兜底。
+//           代码块作首个块：代码块是 figure[data-rehype-pretty-code-figure]，
+//             同样命中 :first-child 归零上边距（配合第 8.1 节 figure 的 margin:1rem 0，
+//             首个代码块上边距归零、下边距保留，与正文一致）。
+//           仅首个块受影响；callout 内后续块、正文、以及非首个公式/代码块的上边距均保持不变。
+//     折叠（is-collapsed）callout：内容 height:0 收起，margin 不随 height 消失，
+//           需把全部子块上下 margin 一起归零，避免 margin 撑出空白（独立规则，不影响普通 callout）。
+//     说明：不依赖 !important，仅凭特异性压过 MathJax（(0,5,0) > (0,2,0)），与加载顺序无关。
+// ============================================================================
+// 仅首个块：归零上边距（不动下边距）
+.center article .callout .callout-content > :first-child,
+.center article .callout .callout-content > :first-child mjx-container[display="true"] {
+  margin-top: 0;
+}
+// 折叠态：全部子块上下 margin 归零
+.center article .callout.is-collapsed .callout-content > *,
+.center article .callout.is-collapsed .callout-content > * mjx-container[display="true"],
+.center article .callout.is-collapsed .callout-content > * figure[data-rehype-pretty-code-figure] {
+  margin-top: 0;
+  margin-bottom: 0;
 }

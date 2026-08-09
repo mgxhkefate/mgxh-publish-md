@@ -3,14 +3,14 @@ noteType: experience
 aliases:
 tags:
   - quartz
-description: 本站五个自研 Quartz 插件的介绍：no-referrer-images、lxgw-font、image-zoom、mermaid-selfhost、markdown-image-size，逐一说明解决的问题并附上 GitHub 仓库地址 (不贴源码)。
+description: 本站六个自研 Quartz 插件的介绍：no-referrer-images、lxgw-font、image-zoom、mermaid-selfhost、markdown-image-size、force-display-math，逐一说明解决的问题并附上 GitHub 仓库地址 (不贴源码)。
 created: 2026-07-31 14:46
-modified: 2026-08-04 21:17
+modified: 2026-08-09 13:49
 cssclasses:
 title: Quartz 自定义插件介绍
 ---
 
-本站基于 Quartz v5 构建，目前使用了五个自行开发的插件，均已发布到 GitHub 公开仓库，通过 git 源直接引用 (无需在本机建立符号链接)。下面逐一说明每个插件解决了什么问题，并附上仓库地址。
+本站基于 Quartz v5 构建，目前使用了六个自行开发的插件，均已发布到 GitHub 公开仓库，通过 git 源直接引用 (无需在本机建立符号链接)。下面逐一说明每个插件解决了什么问题，并附上仓库地址。
 
 ### 1. no-referrer-images(外链图片防盗链绕过)
 
@@ -64,11 +64,24 @@ title: Quartz 自定义插件介绍
 
 - https://github.com/mgxhkefate/markdown-image-size
 
+### 6. force-display-math(行内 `$$` 强制块级显示公式)
+
+**解决的问题**
+
+- 在 Obsidian 里，任意位置的 `$$...$$` 都被当作显示公式（块级、换行、居中）；但 Quartz 自带的 `remark-math`（latex 插件 `renderEngine: mathjax`）在**解析阶段**就把行内 `$$...$$` 折叠成 `inlineMath`，定界符被吃掉，与 `$...$` 完全无法区分——即使 `$$` 独占一行仍被当成行内，只有 `$$\n...\n$$` 这种多行 mathFlow 才是 display。结果：Obsidian 里居中的公式，发布到网页却变成行内小公式。**纯 scss 无解**，因为两种形态在产物里没有可区分的属性。
+- 该插件用 remark 树变换 + `textTransform` 双管齐下解决：① `textTransform` 先把行内 `$$...$$` 替换成 remark-math 不认得的私有哨兵，让它当作普通文本留在原段落 / 容器内；② 树变换递归下钻块容器（root / blockquote / listItem / list / tableCell 等），把每个段落按哨兵拆成「前段段落 + 显示公式(math)节点 + 后段段落」，公式节点作为**容器直接子节点**插入。callout、列表项、表格单元格内都生效，不会被踢出（初版「改写成多行块级 `\n$$\n...\n$$`」的方案是错误的——mathFlow 要求 `$$` 落行首，会把公式从容器里踢到文档顶层，破坏结构，已弃用）。渲染 display 由 rehype-mathjax 接管，`display="true"` 居中靠 MathJax 自带样式，无需改 scss。
+- **约束**：`$...$` 行内公式完全不受影响；手写的多行块级 `$$\n...\n$$` 不受影响；代码块 / 行内代码内的 `$$` 在 `textTransform` 阶段就被屏蔽，不会误转。
+- 已发布到 GitHub 并通过 git 源接入；`quartz.config.yaml` 中 `order: 79`（位于 latex 插件之前），`source` 为 `git+https://github.com/mgxhkefate/force-display-math.git`（dist 已用 esbuild 自包含打包，含依赖，clone 后无需再装 node_modules）。
+
+**仓库地址**
+
+- https://github.com/mgxhkefate/force-display-math
+
 ---
 
 ### 附：graph 插件(社区插件)的本地修复
 
-本站的关系图谱使用的是社区插件 `github:quartz-community/graph`(非自研，故未列入上面五个)。该插件在「中文文件名的当前页节点」上有一个编码显示 bug，我已打补丁修复；详细的根因、补丁位置与重放步骤见 [[quartz-pull-overrides-reminder#5. graph 插件中文节点 %xx% 修复]]。
+本站的关系图谱使用的是社区插件 `github:quartz-community/graph`(非自研，故未列入上面六个)。该插件在「中文文件名的当前页节点」上有一个编码显示 bug，我已打补丁修复；详细的根因、补丁位置与重放步骤见 [[quartz-pull-overrides-reminder#5. graph 插件中文节点 %xx% 修复]]。
 
 - **现象**：打开一个中文文件名的笔记，其关系图谱里「当前页」那个节点显示成 `%xx%` 编码串(如 `0_fleeting/%E5%A5%A5…`)，而非中文；其余节点正常。
 - **根因**：图谱取「当前页 slug」(`window.location.pathname` / SPA 导航事件 `e.detail.url`)在你的环境里是 URL 编码态，而图谱数据 `contentIndex.json` 的 key / `title` 是未编码中文，两者匹配不上 → `title` 取不到 → 回退显示编码 slug。

@@ -109,9 +109,9 @@ cd D:/XL/quartz && npx quartz build
 - **问题**：关系图谱里，中文文件名的「当前页」节点显示成 `%xx%` 编码串(如 `0_fleeting/%E5%A5%A5…`)，而不是中文；其余节点正常。
 - **根因**：graph 取「当前页 slug」用的是 `window.location.pathname` / SPA 导航事件的 `e.detail.url`，在你的环境里是 URL 编码态；而图谱数据 `contentIndex.json` 的 key 与 `title` 是未编码中文。两者不匹配 → `get(编码slug)` 取不到 `title` → 回退显示编码 slug，于是看到 `%xx%`。其余节点从数据 key(未编码)来，故正常——这正解释了「为什么偏偏当前这个中文文件变 %xx%」。
 - **改了什么**：在插件真正被加载的编译产物里，对所有 slug 统一加 `decodeURIComponent`，共五处(当前页 slug、`data` 的 key、链接目标、标签 slug、文本回退值)。涉及文件：
-  - `.quartz/plugins/graph/dist/components/index.js`(真正被打包的入口，`minify` 后变量名形如 `Fu` / `eu`)
-  - `.quartz/plugins/graph/dist/index.js`(re-export，同步补丁)
-  - `src/components/scripts/graph.inline.ts` 也加了 `decodeSlug` 安全封装(但 build 不读 src，仅供参考；若以后改走源码编译再另行处理)
+	- `.quartz/plugins/graph/dist/components/index.js`(真正被打包的入口，`minify` 后变量名形如 `Fu` / `eu`)
+	- `.quartz/plugins/graph/dist/index.js`(re-export，同步补丁)
+	- `src/components/scripts/graph.inline.ts` 也加了 `decodeSlug` 安全封装(但 build 不读 src，仅供参考；若以后改走源码编译再另行处理)
 - **为什么会被覆盖**：graph 来自 `github:quartz-community/graph`(`quartz.config.yaml` 第 183 行 `source: github:quartz-community/graph`)。`dist/` 是构建产物、不进 git；`npx quartz build --upgrade` 或插件被重新拉取时，`.quartz/plugins/graph` 会被重新 clone，补丁随之丢失，问题复现。
 - **重调步骤**：重放五处补丁后 `npx quartz build`(先把 `public` 移走规避删除保护，见下方统一通用步骤)。一键重放脚本：
 
