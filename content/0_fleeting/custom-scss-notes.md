@@ -4,7 +4,7 @@ tags:
   - quartz
 description: 站点 custom.scss 自定义样式片段的整理笔记：逐节说明各样式的作用、根因与修法，并附带真实 SCSS 代码 (涵盖正文排版、标题、库/侧栏标题、表格、代码块限高与间距、霞鹜文楷、高亮、滚动条、阅读模式按钮、Bases 表格、Callout 间距折叠与 margin 归零等)。
 created: 2026-07-31 14:09
-modified: 2026-08-09 13:32
+modified: 2026-08-09 21:06
 cssclasses:
 noteType: experience
 title: custom.scss 片段整理
@@ -44,6 +44,7 @@ title: custom.scss 片段整理
 - [26) 首页隐藏 Properties、content-meta、recent-notes，并清空左右侧栏内容](#sec26)
 - [27) Callout 内相邻块间距折叠](#sec27)
 - [28) Callout 首块/折叠 margin 归零](#sec28)
+- [29) Callout 内超宽公式横向滚动](#sec29)
 
 <a id="sec1"></a>
 
@@ -851,6 +852,22 @@ body.callout-collapse-off .center article .callout .callout-content {
   margin-bottom: 0;
 }
 ```
+
+<a id="sec29"></a>
+
+## 29) Callout 内超宽公式横向滚动
+
+callout 内公式过长时，应出现横向滚动条，而非被裁切。
+
+- **根因**：`callouts.scss` 给 `.callout-content` 设了 `overflow: hidden`（折叠动画需要垂直裁切），超宽公式溢出后被直接裁掉、且不出现滚动条。
+- **修法**：把 `.callout-content` 的 overflow 改为 `overflow-x: auto; overflow-y: hidden`（minify 后写作 `overflow: auto hidden`）——垂直仍裁切（保留折叠动画），水平在内容超宽时出现滚动条。公式容器自身（`mjx-container[display="true"]`）由 MathJax 默认 `overflow-x: auto` 自管；本规则作为兜底，即使公式容器未触发滚动，callout 内容区也能横向滚动。
+- **关闭**：把下方 `overflow-x: auto` 改回 `overflow-x: hidden`（或 `overflow: hidden`）即可恢复裁切。
+
+```scss
+.center article .callout .callout-content {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 ```
 
 [^1]: [saberzero1/quartz-themes: Obsidian 🤝 Quartz. Quartz-compatible Obsidian themes.](https://github.com/saberzero1/quartz-themes)

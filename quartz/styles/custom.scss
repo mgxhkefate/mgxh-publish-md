@@ -850,3 +850,16 @@ body.callout-collapse-off .center article .callout .callout-content {
   margin-top: 0;
   margin-bottom: 0;
 }
+
+// ============================================================================
+// 29) Callout 内超宽公式横向滚动
+//     callouts.scss 默认给 .callout-content 设 overflow:hidden（折叠动画要垂直裁切），
+//     导致 callout 内过宽的公式被直接裁掉、且不出现滚动条。
+//     改为 overflow-x:auto; overflow-y:hidden：垂直仍裁切（保留折叠动画），
+//     水平在内容超宽时出现滚动条。公式容器自身由 MathJax 默认 overflow-x:auto 自管，
+//     本规则作为兜底——即使公式容器未触发滚动，callout 内容区也能横向滚动。
+// ============================================================================
+.center article .callout .callout-content {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
